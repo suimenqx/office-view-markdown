@@ -5,6 +5,10 @@
   "version": "0.1.0",
   "publisher": "suimenqx",
   "icon": "image/logo.png",
+  "galleryBanner": {
+    "color": "#0d1117",
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.64.0"
   },
@@ -38,12 +42,14 @@
       {
         "command": "office-view-markdown.switch",
         "title": "Switch Markdown Editor",
-        "icon": "$(edit)"
+        "icon": "$(edit)",
+        "category": "Office View Markdown"
       },
       {
         "command": "office-view-markdown.paste",
         "title": "Enhance Paste in Markdown",
-        "enablement": "!office-view-markdown.extensionHost.web"
+        "enablement": "!office-view-markdown.extensionHost.web",
+        "category": "Office View Markdown"
       },
       {
         "command": "office-view-markdown.plantuml.testServer",

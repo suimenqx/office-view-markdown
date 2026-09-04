@@ -4,9 +4,11 @@
 
 **Blocked by:** 01 Design Tokens foundation
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Link / inline code / hr micro-polish lands on the Reading Surface
-- [ ] package.json galleryBanner dark theme present
-- [ ] Commands use category Office View Markdown
-- [ ] New/updated settings remain documented in Settings UI
+- [x] Link / inline code / hr micro-polish lands on the Reading Surface
+- [x] package.json galleryBanner dark theme present
+- [x] Commands use category Office View Markdown
+- [x] New/updated settings remain documented in Settings UI
+
+**Comments:** Added subtle Reading Surface link hover underlines, token-backed inline-code borders, and thin token-colored rules. Marketplace metadata now includes the dark `galleryBanner` and every contributed command uses the `Office View Markdown` category. New settings retain `markdownDescription` and explicit ordering. Verified with `node test/unit/marketplacePolish.test.js` and `npm run build`.

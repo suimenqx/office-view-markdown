@@ -234,10 +234,10 @@
     }
 
     hr {
-      height: 2px;
+      height: 1px;
       padding: 0;
       margin: 24px 0;
-      background-color: var(--hr-bg, #eaecef);
+      background-color: var(--hr-bg, var(--border-color, #eaecef));
       border: 0;
     }
 
@@ -248,6 +248,13 @@
 
     a {
       color: var(--link-color, @blurColor);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 2px;
+      transition: var(--transition);
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
 
     blockquote {
@@ -355,11 +362,23 @@
       }
     }
 
-    code:not(.highlight-chroma) {
+    p code,
+    li code,
+    blockquote code,
+    td code,
+    th code,
+    h1 code,
+    h2 code,
+    h3 code,
+    h4 code,
+    h5 code,
+    h6 code {
       padding: 0.2em 0.4em;
       margin: 0;
       font-size: 85%;
-      border-radius: 3px;
+      border: 1px solid color-mix(in srgb, var(--border-color, #d0d7de) 75%, transparent);
+      border-radius: var(--radius-sm);
+      box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--border-color, #d0d7de) 40%, transparent);
       font-family: var(--code-font-family);
       word-break: break-word;
       background-size: 20px 20px;
