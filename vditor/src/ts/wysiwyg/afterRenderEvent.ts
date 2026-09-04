@@ -6,7 +6,7 @@ import { clearHistoryInputBuffer } from "../util/historyInputBufferState";
 import { getHistoryMaxWaitFactor, getHistoryRecordWait } from "../util/historySchedule";
 import { matchHotkeyNew } from "../util/hotKey";
 import { formatMs, logPerf } from "../util/log";
-import { applyGitHubAlertClasses } from "../markdown/githubAlerts";
+import { applyGitHubAlertClasses, getGitHubAlertEditScope } from "../markdown/githubAlerts";
 
 
 export function handlerHistoryEvent(event: KeyboardEvent, vditor: IVditor,): boolean {
@@ -19,12 +19,21 @@ export function handlerHistoryEvent(event: KeyboardEvent, vditor: IVditor,): boo
     return false;
 }
 
-export const afterRenderEvent = (vditor: IVditor, options = {
+export const afterRenderEvent = (vditor: IVditor, options: {
+    enableAddUndoStack?: boolean,
+    enableHint?: boolean,
+    enableInput?: boolean,
+    alertScope?: ParentNode;
+} = {
     enableAddUndoStack: true,
     enableHint: false,
     enableInput: true,
 }) => {
-    applyGitHubAlertClasses(vditor[vditor.currentMode].element);
+    const editorElement = vditor[vditor.currentMode].element;
+    const alertScope = options.alertScope || getGitHubAlertEditScope(editorElement);
+    if (alertScope) {
+        applyGitHubAlertClasses(editorElement, alertScope);
+    }
     if (options.enableHint) {
         vditor.hint.render(vditor);
     }

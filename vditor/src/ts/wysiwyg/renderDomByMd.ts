@@ -3,6 +3,7 @@ import {log} from "../util/log";
 import {processCodeRender} from "../util/processCode";
 import {renderTocNow} from "../util/toc";
 import {afterRenderEvent} from "./afterRenderEvent";
+import {markGitHubAlertSourceTitles} from "../markdown/githubAlerts";
 
 export const BOUNDARY_SENTINEL_CLASS = "vditor-editor-boundary";
 
@@ -23,6 +24,7 @@ export const renderDomByMd = (vditor: IVditor, md: string, options = {
     const html = vditor.lute.Md2VditorDOM(md);
     log("Md2VditorDOM", html, "result", vditor.options.debugger);
     editorElement.innerHTML = html;
+    markGitHubAlertSourceTitles(editorElement, md);
 
     const isNearViewport = (element: HTMLElement) => {
         const rect = element.getBoundingClientRect();
@@ -57,5 +59,5 @@ export const renderDomByMd = (vditor: IVditor, md: string, options = {
     ensureEditorBoundaryParagraphs(editorElement);
 
     renderTocNow(vditor);
-    afterRenderEvent(vditor, options);
+    afterRenderEvent(vditor, {...options, alertScope: editorElement});
 };

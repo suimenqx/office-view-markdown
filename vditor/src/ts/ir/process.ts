@@ -11,7 +11,7 @@ import {getHistoryMaxWaitFactor, getHistoryRecordWait} from "../util/historySche
 import {scheduleRenderToc} from "../util/toc";
 import {highlightToolbarIR} from "./highlightToolbarIR";
 import {input} from "./input";
-import {applyGitHubAlertClasses} from "../markdown/githubAlerts";
+import {applyGitHubAlertClasses, getGitHubAlertEditScope} from "../markdown/githubAlerts";
 
 export const processHint = (vditor: IVditor) => {
     vditor.hint.render(vditor);
@@ -54,12 +54,21 @@ export const recordHistory = (vditor: IVditor, options = {
     clearHistoryInputBuffer(vditor);
 };
 
-export const processAfterRender = (vditor: IVditor, options = {
+export const processAfterRender = (vditor: IVditor, options: {
+    enableAddUndoStack?: boolean,
+    enableHint?: boolean,
+    enableInput?: boolean,
+    alertScope?: ParentNode;
+} = {
     enableAddUndoStack: true,
     enableHint: false,
     enableInput: true,
 }) => {
-    applyGitHubAlertClasses(vditor[vditor.currentMode].element);
+    const editorElement = vditor[vditor.currentMode].element;
+    const alertScope = options.alertScope || getGitHubAlertEditScope(editorElement);
+    if (alertScope) {
+        applyGitHubAlertClasses(editorElement, alertScope);
+    }
     if (options.enableHint) {
         processHint(vditor);
     }

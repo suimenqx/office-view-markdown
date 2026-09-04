@@ -60,6 +60,7 @@ import {
 import { WYSIWYG } from "./ts/wysiwyg/index";
 import { input } from "./ts/wysiwyg/input";
 import { ensureEditorBoundaryParagraphs, renderDomByMd } from "./ts/wysiwyg/renderDomByMd";
+import { markGitHubAlertSourceTitles } from "./ts/markdown/githubAlerts";
 import { unbindTypewriterMode } from "./ts/ui/typewriterMode";
 
 class Vditor {
@@ -380,6 +381,7 @@ class Vditor {
             });
         } else {
             this.vditor.ir.element.innerHTML = this.vditor.lute.Md2VditorIRDOM(markdown);
+            markGitHubAlertSourceTitles(this.vditor.ir.element, markdown);
             this.vditor.ir.element
                 .querySelectorAll(".vditor-ir__preview[data-render='2']")
                 .forEach((item: HTMLElement) => {
@@ -390,6 +392,7 @@ class Vditor {
                 enableAddUndoStack: true,
                 enableHint: false,
                 enableInput: false,
+                alertScope: this.vditor.ir.element,
             });
         }
 

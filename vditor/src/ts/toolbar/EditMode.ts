@@ -17,6 +17,7 @@ import {ensureEditorBoundaryParagraphs, renderDomByMd} from "../wysiwyg/renderDo
 import {renderCodeBlocks} from "../codeBlock/codeMirrorManager";
 import {MenuItem} from "./MenuItem";
 import {refreshSettingsToolbarPanel} from "../ui/settingsPanel";
+import {markGitHubAlertSourceTitles} from "../markdown/githubAlerts";
 import {
     disableToolbar,
     enableToolbar,
@@ -76,10 +77,12 @@ export const setEditMode = (
         const irHTML = vditor.lute.Md2VditorIRDOM(markdownText);
         log("Md2VditorIRDOM", irHTML, "result", vditor.options.debugger);
         vditor.ir.element.innerHTML = irHTML;
+        markGitHubAlertSourceTitles(vditor.ir.element, markdownText);
         processAfterRender(vditor, {
             enableAddUndoStack: true,
             enableHint: false,
             enableInput: false,
+            alertScope: vditor.ir.element,
         });
 
         vditor.ir.element.querySelectorAll(".vditor-ir__preview[data-render='2']").forEach((item: HTMLElement) => {
