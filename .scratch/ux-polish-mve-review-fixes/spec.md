@@ -1,6 +1,6 @@
 # Spec: UX polish review follow-ups (tickets 04–10)
 
-Status: ready-for-agent
+Status: done
 
 ## Problem Statement
 

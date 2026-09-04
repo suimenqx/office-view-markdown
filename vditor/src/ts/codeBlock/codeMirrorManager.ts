@@ -2191,6 +2191,7 @@ export const buildEditorHtmlForMarkdown = (vditor: IVditor) => {
         container.removeAttribute("contenteditable");
     }
     removeActionableEmptyState(clone);
+    clone.querySelectorAll(".vditor-image-error-state").forEach((element) => element.remove());
     stripImagePresentationFromClone(clone);
     stripTablePresentationFromClone(clone);
     clone.querySelectorAll("img[data-vditor-image-error='true']").forEach((img) => {

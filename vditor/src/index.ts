@@ -60,12 +60,12 @@ import {
 import { WYSIWYG } from "./ts/wysiwyg/index";
 import { input } from "./ts/wysiwyg/input";
 import { ensureEditorBoundaryParagraphs, renderDomByMd } from "./ts/wysiwyg/renderDomByMd";
-import { markGitHubAlertSourceTitles } from "./ts/markdown/githubAlerts";
+import { applyAfterLuteHtmlPresentation } from "./ts/markdown/afterLuteHtml";
 import {
     applyFrontMatterPresentation,
     FrontMatterPresentation,
     resolveFrontMatterPresentation,
-} from "./ts/codeBlock/frontMatterPresentation";
+} from "./ts/ui/frontMatterPresentation";
 import { unbindTypewriterMode } from "./ts/ui/typewriterMode";
 
 class Vditor {
@@ -367,12 +367,12 @@ class Vditor {
         if (vditor.currentMode === "ir") {
             const rendered = document.createElement("div");
             rendered.innerHTML = vditor.lute.Md2VditorIRDOM(markdown);
-            markGitHubAlertSourceTitles(rendered, markdown);
+            applyAfterLuteHtmlPresentation(rendered, markdown, vditor.options.frontMatterPresentation);
             insertHTML(rendered.innerHTML, vditor);
         } else if (vditor.currentMode === "wysiwyg") {
             const rendered = document.createElement("div");
             rendered.innerHTML = vditor.lute.Md2VditorDOM(markdown);
-            markGitHubAlertSourceTitles(rendered, markdown);
+            applyAfterLuteHtmlPresentation(rendered, markdown, vditor.options.frontMatterPresentation);
             insertHTML(rendered.innerHTML, vditor);
         } else {
             document.execCommand("insertText", false, markdown);
@@ -404,10 +404,10 @@ class Vditor {
             });
         } else {
             this.vditor.ir.element.innerHTML = this.vditor.lute.Md2VditorIRDOM(markdown);
-            markGitHubAlertSourceTitles(this.vditor.ir.element, markdown);
-            applyFrontMatterPresentation(
+            applyAfterLuteHtmlPresentation(
                 this.vditor.ir.element,
-                resolveFrontMatterPresentation(this.vditor.options.frontMatterPresentation),
+                markdown,
+                this.vditor.options.frontMatterPresentation,
             );
             this.vditor.ir.element
                 .querySelectorAll(".vditor-ir__preview[data-render='2']")

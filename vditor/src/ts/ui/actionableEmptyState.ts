@@ -41,6 +41,7 @@ export const renderActionableEmptyState = (
     root.replaceChildren(state);
 };
 
+/** Remove Actionable Empty State cards only (not other generated chrome). */
 export const removeActionableEmptyState = (root: ParentNode) => {
-    root.querySelectorAll("[data-vditor-generated='true']").forEach((element) => element.remove());
+    root.querySelectorAll(".vditor-actionable-empty-state").forEach((element) => element.remove());
 };

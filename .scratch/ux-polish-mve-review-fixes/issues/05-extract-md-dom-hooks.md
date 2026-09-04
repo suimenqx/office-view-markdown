@@ -4,9 +4,11 @@
 
 **Blocked by:** 01 Fix chips Frontmatter multi-value display; 02 Table wrapper rounded clipping; 03 Image figure / figcaption policy
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Mount sites call one shared after-HTML presentation helper (no copy-paste triad)
-- [ ] IR and WYSIWYG share one alert refresh prelude
-- [ ] Empty-state removal only targets empty-state nodes (or API renamed to match real scope)
-- [ ] Build + existing unit tests pass
+- [x] Mount sites call one shared after-HTML presentation helper (no copy-paste triad)
+- [x] IR and WYSIWYG share one alert refresh prelude
+- [x] Empty-state removal only targets empty-state nodes (or API renamed to match real scope)
+- [x] Build + existing unit tests pass
+
+**Comments:** Added `afterLuteHtml.ts` and `alertRefresh.ts`; moved `frontMatterPresentation.ts` to `ui/`; narrowed `removeActionableEmptyState` to `.vditor-actionable-empty-state` with export-path cleanup for image-error hosts. Build + all unit tests green.

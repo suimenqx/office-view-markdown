@@ -17,24 +17,41 @@ buildSync({
 });
 
 class FakeElement {
-  constructor() {
+  constructor(className = '') {
     this.children = [];
     this.attributes = {};
     this.listeners = {};
-    this.className = '';
+    this.className = className;
     this.textContent = '';
+    this.disabled = false;
+    this.type = '';
   }
 
   setAttribute(name, value) { this.attributes[name] = value; }
   addEventListener(name, listener) { this.listeners[name] = listener; }
   append(...children) { this.children.push(...children); }
   replaceChildren(...children) { this.children = children; }
+  remove() { this._removed = true; }
+  querySelectorAll(sel) {
+    const out = [];
+    const walk = (node) => {
+      if (sel === ".vditor-actionable-empty-state" && node.className === 'vditor-actionable-empty-state') {
+        out.push(node);
+      }
+      if (sel === "[data-vditor-generated='true']" && node.attributes['data-vditor-generated'] === 'true') {
+        out.push(node);
+      }
+      for (const child of node.children || []) walk(child);
+    };
+    for (const child of this.children) walk(child);
+    return out;
+  }
 }
 
 global.document = { createElement: () => new FakeElement() };
 
 try {
-  const { renderActionableEmptyState } = require(outfile);
+  const { renderActionableEmptyState, removeActionableEmptyState } = require(outfile);
   const rootElement = new FakeElement();
   let clicked = false;
   renderActionableEmptyState(rootElement, {
@@ -51,6 +68,14 @@ try {
   ]);
   state.children[2].listeners.click({ preventDefault() {}, stopPropagation() {} });
   assert.strictEqual(clicked, true);
+
+  const otherGenerated = new FakeElement('vditor-image-error-state');
+  otherGenerated.setAttribute('data-vditor-generated', 'true');
+  rootElement.children.push(otherGenerated);
+  removeActionableEmptyState(rootElement);
+  assert.strictEqual(state._removed, true);
+  assert.notStrictEqual(otherGenerated._removed, true);
+
   console.log('actionable empty state unit tests passed');
 } finally {
   try { fs.unlinkSync(outfile); } catch (_) { /* ignore */ }

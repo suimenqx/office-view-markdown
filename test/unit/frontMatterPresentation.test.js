@@ -8,7 +8,7 @@ const root = path.join(__dirname, '..', '..');
 const outfile = path.join(os.tmpdir(), `frontMatterPresentation-test-${process.pid}.cjs`);
 
 buildSync({
-  entryPoints: [path.join(root, 'vditor/src/ts/codeBlock/frontMatterPresentation.ts')],
+  entryPoints: [path.join(root, 'vditor/src/ts/ui/frontMatterPresentation.ts')],
   bundle: true,
   platform: 'node',
   format: 'cjs',
