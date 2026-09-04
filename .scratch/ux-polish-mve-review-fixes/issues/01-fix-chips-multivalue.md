@@ -4,9 +4,11 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Chips mode no longer hides non-first list items of multi-value frontmatter
-- [ ] Compact layout still uses Codicon; default remains table
-- [ ] Switching table ↔ chips does not corrupt frontmatter source
-- [ ] Focused test or fixture covers multi-value tags (or equivalent)
+- [x] Chips mode no longer hides non-first list items of multi-value frontmatter
+- [x] Compact layout still uses Codicon; default remains table
+- [x] Switching table ↔ chips does not corrupt frontmatter source
+- [x] Focused test or fixture covers multi-value tags (or equivalent)
+
+**Comments:** Removed the chips CSS rule that hid `li:not(:first-child)` and allowed tag/alias lists to wrap so all authored values stay visible. Presentation still only toggles DOM classes (source unchanged). Covered by `test/unit/frontMatterPresentation.test.js`.

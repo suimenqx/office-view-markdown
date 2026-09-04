@@ -732,22 +732,26 @@
       font-size: 0.82rem;
     }
 
+    .vditor-properties__row--chip .vditor-properties__value:has(.vditor-properties__list) {
+      overflow: visible;
+      text-overflow: unset;
+      white-space: normal;
+    }
+
     .vditor-properties__row--chip .vditor-properties__value--tags,
     .vditor-properties__row--chip .vditor-properties__value--aliases {
       display: inline-flex;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       gap: 4px;
+      white-space: normal;
     }
 
     .vditor-properties__row--chip .vditor-properties__list {
       display: inline-flex;
+      flex-wrap: wrap;
       gap: 4px;
       padding-left: 0;
       list-style: none;
-    }
-
-    .vditor-properties__row--chip .vditor-properties__list li:not(:first-child) {
-      display: none;
     }
   }
 }
