@@ -1,16 +1,58 @@
 const IMAGE_FIGURE_ATTR = "data-vditor-image-figure";
 const IMAGE_POLISHED_CLASS = "vditor-image-polished";
 
-export const getImageCaption = (img: HTMLImageElement): string =>
-    img.getAttribute("title")?.trim() || img.getAttribute("alt")?.trim() || "";
+/**
+ * Caption is warranted when title is set, or when alt looks like intentional prose
+ * (not empty, not a bare filename/extension, not a generic decorative token).
+ */
+export const imageCaptionIsWarranted = (img: HTMLImageElement): boolean => {
+    const title = img.getAttribute("title")?.trim() || "";
+    if (title) {
+        return true;
+    }
+    const alt = img.getAttribute("alt")?.trim() || "";
+    if (!alt || alt.length < 3) {
+        return false;
+    }
+    if (/^(image|img|photo|picture|icon|logo)(\.\w+)?$/i.test(alt)) {
+        return false;
+    }
+    if (/\.(png|jpe?g|gif|webp|svg|bmp|ico)$/i.test(alt)) {
+        return false;
+    }
+    const src = img.getAttribute("src") || "";
+    const base = src.split(/[\\/]/).pop()?.split("?")[0] || "";
+    if (base && (alt === base || alt === base.replace(/\.[^.]+$/, ""))) {
+        return false;
+    }
+    return true;
+};
+
+export const getImageCaption = (img: HTMLImageElement): string => {
+    if (!imageCaptionIsWarranted(img)) {
+        return "";
+    }
+    return img.getAttribute("title")?.trim() || img.getAttribute("alt")?.trim() || "";
+};
 
 export const enhanceImagePresentation = (img: HTMLImageElement) => {
     if (img.closest(`figure[${IMAGE_FIGURE_ATTR}]`)) {
         return;
     }
+    // Always apply light radius/border/shadow polish without requiring a figure.
+    img.classList.add(IMAGE_POLISHED_CLASS);
+
+    const captionText = getImageCaption(img);
+    if (!captionText) {
+        return;
+    }
+
     const parent = img.parentElement;
     if (!parent || parent.tagName === "A") {
-        img.classList.add(IMAGE_POLISHED_CLASS);
+        return;
+    }
+    // Do not inject <figure> inside <p> — browsers split the paragraph and break WYSIWYG.
+    if (parent.tagName === "P") {
         return;
     }
 
@@ -20,13 +62,10 @@ export const enhanceImagePresentation = (img: HTMLImageElement) => {
     parent.insertBefore(figure, img);
     figure.appendChild(img);
 
-    const captionText = getImageCaption(img);
-    if (captionText) {
-        const caption = document.createElement("figcaption");
-        caption.className = "vditor-image-figure__caption";
-        caption.textContent = captionText;
-        figure.appendChild(caption);
-    }
+    const caption = document.createElement("figcaption");
+    caption.className = "vditor-image-figure__caption";
+    caption.textContent = captionText;
+    figure.appendChild(caption);
 };
 
 /** Restore a plain image in the Markdown export clone. */

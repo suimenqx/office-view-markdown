@@ -4,9 +4,11 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Images are not unconditionally wrapped in generated `<figure>` when no caption is warranted
-- [ ] Figcaption appears only when caption is warranted (clear heuristic documented in code comment or helper name)
-- [ ] No figure-inside-paragraph structural breakage in WYSIWYG
-- [ ] Insert/edit image paths still work; presentation strip on export/clone still works
+- [x] Images are not unconditionally wrapped in generated `<figure>` when no caption is warranted
+- [x] Figcaption appears only when caption is warranted (clear heuristic documented in code comment or helper name)
+- [x] No figure-inside-paragraph structural breakage in WYSIWYG
+- [x] Insert/edit image paths still work; presentation strip on export/clone still works
+
+**Comments:** `imageCaptionIsWarranted` gates captions (title always; alt only when not decorative/filename-like). Polish class applies without a figure; figure wrap skipped inside `<p>` and when no caption. Export strip unchanged. Covered by `test/unit/imageFigure.test.js`.
