@@ -80,6 +80,19 @@
 }
 
 .vditor {
+  /* Shared Design Tokens: keep editor chrome coherent across themes. */
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px color-mix(in srgb, #000 12%, transparent);
+  --shadow-md: var(--panel-shadow);
+  --shadow-lg: 0 8px 24px color-mix(in srgb, #000 18%, transparent);
+  --transition: all 0.15s ease-in-out;
+  --success: var(--vscode-testing-iconPassed, var(--vscode-charts-green, #2da44e));
+  --warning: var(--vscode-editorWarning-foreground, var(--vscode-charts-yellow, #9a6700));
+  --info: var(--vscode-textLink-foreground, var(--vscode-charts-blue, #0969da));
+  --error: var(--error-color, var(--vscode-errorForeground, var(--vscode-charts-red, @errorColor)));
+
   --ui-font-size: 13px;
   --editor-font-size: var(--vscode-editor-font-size, 16px);
   --editor-line-height: 1.7;
@@ -103,7 +116,7 @@
   --vditor-popover-primary-btn-fg: #fff;
   --vditor-popover-secondary-btn-bg: color-mix(in srgb, var(--toolbar-icon-color) 8%, transparent);
   --vditor-popover-secondary-btn-bg-hover: color-mix(in srgb, var(--toolbar-icon-color) 13%, transparent);
-  --vditor-popover-radius: 6px;
+  --vditor-popover-radius: var(--radius-sm);
   --vditor-popover-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
 
   --toolbar-background-color: var(--bg-color, #f6f8fa);

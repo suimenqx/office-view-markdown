@@ -59,7 +59,7 @@
   height: 28px;
   padding: 0 10px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius);
   // 固定亮色，不跟随编辑器主题
   background: #ffffff;
   color: #1f2328;
@@ -69,8 +69,8 @@
   pointer-events: auto;
   opacity: 0;
   visibility: hidden;
-  box-shadow: 0 1px 3px rgba(31, 35, 40, 0.12);
-  transition: opacity 0.15s ease, visibility 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
 
   &:hover {
     background: #eef2f7;
@@ -103,7 +103,7 @@
   max-width: 36rem;
   padding: 12px 14px;
   border: 1px dashed var(--border-color, #d0d7de);
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: var(--panel-bg, rgba(127, 127, 127, 0.08));
   color: var(--toolbar-icon-color, inherit);
   line-height: 1.45;
@@ -122,7 +122,7 @@
   align-self: flex-start;
   cursor: pointer;
   border: 1px solid var(--border-color, #d0d7de);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 4px 10px;
   background: var(--toolbar-bg, #fff);
   color: inherit;
