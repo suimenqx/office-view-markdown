@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 Design Tokens foundation
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] Table polish uses Design Tokens and does not break table editing
 - [x] Task checkbox styling still toggles task state in WYSIWYG

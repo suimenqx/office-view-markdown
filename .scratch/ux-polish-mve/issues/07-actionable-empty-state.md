@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 Design Tokens foundation
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] PlantUML unconfigured / render failure uses Actionable Empty State
 - [x] Mermaid and image failures align to the same visual/language pattern

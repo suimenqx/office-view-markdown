@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 Design Tokens foundation
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] Outline header is i18n’d (including Chinese 本页目录)
 - [x] Active outline item shows left accent + subtle background using Design Tokens

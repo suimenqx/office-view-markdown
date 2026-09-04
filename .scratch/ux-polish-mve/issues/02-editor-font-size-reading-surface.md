@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 Design Tokens foundation
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] Setting `office-view-markdown.editorFontSize` exists with markdownDescription and sensible order
 - [x] In-editor settings panel stepper adjusts the same value and updates the Reading Surface

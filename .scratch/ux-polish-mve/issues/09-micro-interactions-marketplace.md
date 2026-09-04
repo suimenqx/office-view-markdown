@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 Design Tokens foundation
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] Link / inline code / hr micro-polish lands on the Reading Surface
 - [x] package.json galleryBanner dark theme present

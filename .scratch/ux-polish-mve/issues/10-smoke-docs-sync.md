@@ -4,7 +4,7 @@
 
 **Blocked by:** 02 Editor Font Size + Reading Surface type; 03 Outline / TOC chrome; 04 GitHub Alerts presentation; 05 Code-block labels & copy feedback; 06 Frontmatter Presentation (table | chips); 07 Actionable Empty State + host helper; 08 Tables, tasks, images polish; 09 Micro-interactions + Marketplace IA
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] Sample Markdown covers the acceptance paths above
 - [x] Build/package succeeds; host smoke checklist documented or run

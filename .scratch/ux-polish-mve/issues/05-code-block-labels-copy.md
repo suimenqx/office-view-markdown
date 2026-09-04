@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 Design Tokens foundation
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] Common languages display readable names (e.g. TypeScript, Shell)
 - [x] Copy success feedback is visible then reverts

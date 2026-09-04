@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] Design Tokens are defined once and consumed by multiple chrome surfaces (no new one-off magic radii/shadows for those surfaces)
 - [x] Semantic status colors map through VS Code-compatible tokens where practical

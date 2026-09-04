@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 Design Tokens foundation
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] Alert markers receive semantic alert classes / styling
 - [x] Non-alert blockquotes unchanged

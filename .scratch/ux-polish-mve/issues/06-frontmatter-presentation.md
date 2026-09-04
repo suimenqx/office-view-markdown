@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 Design Tokens foundation
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] Setting supports `table | chips` with default `table`
 - [x] Chips mode uses Codicon (no emoji icons)
