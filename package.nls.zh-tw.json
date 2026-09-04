@@ -6,5 +6,7 @@
 	"ext.markdown.installXclip": "請先安裝 xclip 命令。",
 	"ext.markdown.wikilinkNotFound": "找不到雙鏈目標：$1",
 	"ext.markdown.selectImage": "選擇圖片",
-	"ext.markdown.statusBar": "行 $1 字數 $2"
+	"ext.markdown.statusBar": "行 $1 字數 $2",
+	"config.editorFontSize": "Reading Surface 的編輯器字型大小（像素）。設為 0 可跟隨 VS Code 的 editor.fontSize；覆寫值範圍為 12–28 像素。",
+	"config.frontMatterPresentation": "YAML 中繼資料的 Frontmatter Presentation。表格保留可編輯檢視；chips 用於緊湊顯示短值。"
 }

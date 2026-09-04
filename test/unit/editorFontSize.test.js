@@ -47,9 +47,11 @@ function main() {
   assert.strictEqual(vditor.stepEditorFontSize(28, 2), 28);
 
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-  const configuration = pkg.contributes.configuration.flatMap((section) => Object.values(section.properties || {}));
-  const setting = configuration.find((property) => property && property.markdownDescription?.includes('Editor Font Size'));
+  const configuration = pkg.contributes.configuration.flatMap((section) => Object.entries(section.properties || {}));
+  const settingEntry = configuration.find(([key]) => key === 'office-view-markdown.editorFontSize');
+  const setting = settingEntry && settingEntry[1];
   assert.ok(setting, 'Editor Font Size setting should be contributed with a markdownDescription');
+  assert.match(setting.markdownDescription, /^%config\.editorFontSize%$/);
   assert.strictEqual(setting.default, 0, 'zero should mean follow VS Code editor font size');
   assert.strictEqual(setting.minimum, 0);
   assert.strictEqual(setting.maximum, 28);

@@ -60,6 +60,11 @@ suite('office-view-markdown smoke', function () {
       configKeys.includes('office-view-markdown.plantuml.server'),
       'missing office-view-markdown.plantuml.server setting',
     );
+    assert.ok(configKeys.includes('office-view-markdown.editorFontSize'), 'missing editorFontSize setting');
+    assert.ok(
+      configKeys.includes('office-view-markdown.frontMatterPresentation'),
+      'missing frontMatterPresentation setting',
+    );
 
     const all = await vscode.commands.getCommands(true);
     assert.ok(all.includes('office-view-markdown.switch'), 'switch command not registered');
@@ -87,6 +92,42 @@ suite('office-view-markdown smoke', function () {
       label: tab.label,
       sample,
       vditorHtmlPresent: true,
+      at: new Date().toISOString(),
+    });
+  });
+
+  test('opens the UX polish acceptance fixture', async () => {
+    const sample = path.join(__dirname, '..', 'markdown', 'UxPolish.md');
+    assert.ok(fs.existsSync(sample), 'UxPolish.md fixture should exist');
+    const body = fs.readFileSync(sample, 'utf8');
+    for (const [label, pattern] of [
+      ['frontmatter', /^---\n[\s\S]*?\n---/],
+      ['GitHub Alert', /> \[!NOTE\]/],
+      ['table', /\| Surface \| Treatment \|/],
+      ['task list', /- \[ \]/],
+      ['image', /!\[Reading Surface sample\]/],
+      ['TypeScript block', /```typescript/],
+      ['PlantUML block', /```plantuml/],
+    ]) {
+      assert.ok(pattern.test(body), `${label} acceptance path missing`);
+    }
+
+    const uri = vscode.Uri.file(sample);
+    await vscode.commands.executeCommand('vscode.openWith', uri, viewType);
+    await new Promise((r) => setTimeout(r, 2500));
+    const tab = findCustomEditorTab();
+    assert.ok(tab, 'expected custom editor tab for UxPolish.md');
+
+    const root = vscode.extensions.getExtension(extensionId).extensionPath;
+    const minJs = fs.readFileSync(path.join(root, 'resource/markdown/dist/index.min.js'), 'utf8');
+    assert.ok(/vditor-actionable-empty-state/.test(minJs), 'actionable empty state must be packaged');
+    assert.ok(/vditor-front-matter--chips/.test(minJs), 'frontmatter chips presentation must be packaged');
+    assert.ok(/vditor-image-figure/.test(minJs), 'image figure presentation must be packaged');
+
+    writeEvidence('ux-polish-open.json', {
+      sample,
+      viewType: tab.input.viewType,
+      acceptancePaths: ['frontmatter', 'alerts', 'toc', 'tables', 'tasks', 'images', 'code', 'plantuml'],
       at: new Date().toISOString(),
     });
   });
@@ -148,6 +189,68 @@ suite('office-view-markdown smoke', function () {
       hasMermaidFence: /```mermaid/.test(body),
       hasPlantumlFence: /```plantuml/.test(body),
       note: 'Visual render verified separately via xvfb screenshots under test-results/',
+      at: new Date().toISOString(),
+    });
+  });
+
+  test('plantuml setting default empty and no plantuml.com in extension resources', async () => {
+    const ext = vscode.extensions.getExtension(extensionId);
+    assert.ok(ext);
+    await ext.activate();
+    const pkg = ext.packageJSON;
+    const sections = Array.isArray(pkg.contributes.configuration)
+      ? pkg.contributes.configuration
+      : [pkg.contributes.configuration].filter(Boolean);
+    const setting = sections
+      .map((s) => s.properties && s.properties['office-view-markdown.plantuml.server'])
+      .find(Boolean);
+    assert.ok(setting, 'plantuml.server setting missing');
+    assert.strictEqual(setting.default, '');
+
+    const cfg = vscode.workspace.getConfiguration('office-view-markdown');
+    const value = cfg.get('plantuml.server', 'MISSING');
+    // May be overridden by user-data settings in configured smoke; still assert type string
+    assert.strictEqual(typeof value, 'string');
+
+    const root = ext.extensionPath;
+    const minJs = fs.readFileSync(path.join(root, 'resource/markdown/dist/index.min.js'), 'utf8');
+    assert.ok(!/https?:\/\/(www\.)?plantuml\.com/i.test(minJs), 'must not hardcode plantuml.com');
+    assert.ok(/vditor-actionable-empty-state/.test(minJs), 'actionable empty state must exist');
+    assert.ok(/Open Settings/.test(minJs), 'Open Settings path must exist');
+
+    writeEvidence('plantuml-privacy.json', {
+      extensionPath: root,
+      settingDefault: setting.default,
+      plantumlServerConfig: value,
+      hasActionableEmptyState: true,
+      noPlantumlCom: true,
+      at: new Date().toISOString(),
+    });
+  });
+
+  test('plantuml testServer command is registered and fires without host crash', async () => {
+    const ext = vscode.extensions.getExtension(extensionId);
+    assert.ok(ext);
+    await ext.activate();
+    const all = await vscode.commands.getCommands(true);
+    assert.ok(all.includes('office-view-markdown.plantuml.testServer'));
+
+    const cfg = vscode.workspace.getConfiguration('office-view-markdown');
+    const current = cfg.get('plantuml.server', '');
+    let settled = false;
+    let error = null;
+    const run = vscode.commands.executeCommand('office-view-markdown.plantuml.testServer')
+      .then(() => { settled = true; })
+      .catch((err) => { error = err; settled = true; });
+    await Promise.race([run, new Promise((r) => setTimeout(r, 3000))]);
+    assert.ok(!error, error ? String(error) : '');
+    writeEvidence('plantuml-testServer.json', {
+      executed: true,
+      settledWithin3s: settled,
+      plantumlServer: current,
+      note: current
+        ? 'configured: connectivity probe + info message (may await dismiss)'
+        : 'unconfigured: warning + Open Settings (may await dismiss)',
       at: new Date().toISOString(),
     });
   });

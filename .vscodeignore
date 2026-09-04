@@ -5,6 +5,7 @@ src/**
 vditor/**
 .idea/
 test/**
+test-results/**
 packages/**
 template/**
 .gitignore

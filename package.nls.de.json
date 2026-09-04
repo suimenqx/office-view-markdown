@@ -6,5 +6,7 @@
 	"ext.markdown.installXclip": "Sie müssen zuerst den Befehl xclip installieren.",
 	"ext.markdown.wikilinkNotFound": "Wikilink-Ziel nicht gefunden: $1",
 	"ext.markdown.selectImage": "Bild auswählen",
-	"ext.markdown.statusBar": "Zeile $1 Zeichen $2"
+	"ext.markdown.statusBar": "Zeile $1 Zeichen $2",
+	"config.editorFontSize": "Editor-Schriftgröße für die Reading Surface in Pixeln. Bei 0 wird VS Codes editor.fontSize verwendet; Überschreibungen liegen zwischen 12 und 28 Pixeln.",
+	"config.frontMatterPresentation": "Frontmatter Presentation für YAML-Metadaten. Die Tabelle bleibt bearbeitbar; Chips zeigen kurze Werte kompakt an."
 }

@@ -6,5 +6,7 @@
 	"ext.markdown.installXclip": "You need to install xclip command first.",
 	"ext.markdown.wikilinkNotFound": "Wikilink target not found: $1",
 	"ext.markdown.selectImage": "Select Image",
-	"ext.markdown.statusBar": "Line $1 Count $2"
+	"ext.markdown.statusBar": "Line $1 Count $2",
+	"config.editorFontSize": "Editor Font Size for the Reading Surface in pixels. Set to 0 to follow VS Code's editor.fontSize; overrides use 12–28px.",
+	"config.frontMatterPresentation": "Frontmatter Presentation for YAML metadata. Table keeps the editable view; chips compact short values."
 }

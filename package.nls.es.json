@@ -6,5 +6,7 @@
 	"ext.markdown.installXclip": "Primero debe instalar el comando xclip.",
 	"ext.markdown.wikilinkNotFound": "Destino del wikilink no encontrado: $1",
 	"ext.markdown.selectImage": "Seleccionar imagen",
-	"ext.markdown.statusBar": "Línea $1 Caracteres $2"
+	"ext.markdown.statusBar": "Línea $1 Caracteres $2",
+	"config.editorFontSize": "Tamaño de fuente del editor para Reading Surface en píxeles. 0 sigue editor.fontSize de VS Code; los valores personalizados son de 12 a 28 píxeles.",
+	"config.frontMatterPresentation": "Frontmatter Presentation para metadatos YAML. La tabla conserva la edición; chips muestran valores cortos de forma compacta."
 }

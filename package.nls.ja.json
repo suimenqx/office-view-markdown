@@ -6,5 +6,7 @@
 	"ext.markdown.installXclip": "先に xclip コマンドをインストールしてください。",
 	"ext.markdown.wikilinkNotFound": "ウィキリンクのターゲットが見つかりません: $1",
 	"ext.markdown.selectImage": "画像を選択",
-	"ext.markdown.statusBar": "行 $1 文字数 $2"
+	"ext.markdown.statusBar": "行 $1 文字数 $2",
+	"config.editorFontSize": "Reading Surface のエディター フォント サイズ（ピクセル）。0 にすると VS Code の editor.fontSize に従い、上書き値は 12～28 ピクセルです。",
+	"config.frontMatterPresentation": "YAML メタデータの Frontmatter Presentation。テーブルは編集可能な表示を維持し、chips は短い値をコンパクトに表示します。"
 }

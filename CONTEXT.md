@@ -19,7 +19,7 @@ An explicit command that checks whether the configured PlantUML Server Base URL 
 _Avoid_: background health check, automatic probe on open
 
 **Unconfigured PlantUML Server**:
-The state when no PlantUML Server Base URL is set. Diagram source must not be sent to any third-party host; the preview shows a placeholder with a way to open Settings, and the connectivity-test command prompts the user to configure a server.
+The state when no PlantUML Server Base URL is set. Diagram source must not be sent to any third-party host; the Reading Surface shows an Actionable Empty State with a way to open Settings, and the connectivity-test command prompts the user to configure a server.
 _Avoid_: defaulting to www.plantuml.com
 
 ### Reading and chrome
@@ -29,7 +29,7 @@ The WYSIWYG/IR document body as the user experiences it for reading while editin
 _Avoid_: preview panel, side preview, reading mode (as a second surface)
 
 **Editor Font Size**:
-The user-configurable type size of the Reading Surface. It follows the VS Code editor font family; it does not load remote or bundled web fonts.
+The user-configurable type size of the Reading Surface, contributed as `office-view-markdown.editorFontSize`. Zero follows `editor.fontSize`; explicit values are 12–28px. It follows the VS Code editor font family and does not load remote or bundled web fonts.
 _Avoid_: preview font size (as a separate product surface), Inter, JetBrains Mono (as product defaults)
 
 **Design Tokens**:
@@ -45,5 +45,12 @@ A consistent empty or failure card (title, secondary explanation, primary action
 _Avoid_: silent failure, ad-hoc alert-only toast without a next step
 
 **Frontmatter Presentation**:
-How YAML frontmatter / Properties are shown on the Reading Surface: editable table (full) or compact chips (short metadata), without removing editability.
+How YAML frontmatter / Properties are shown on the Reading Surface through `office-view-markdown.frontMatterPresentation`: editable table (full, the default) or compact chips (short metadata), without removing editability.
 _Avoid_: read-only frontmatter strip as the only mode
+
+### Smoke language
+
+The UX-polish smoke fixture is `test/markdown/UxPolish.md`. It is a host-smoke
+document, not a second product surface: it exercises Reading Surface headings,
+GitHub Alerts, tables, tasks, images, code-block chrome, Frontmatter Presentation,
+and the unconfigured PlantUML Actionable Empty State in one document.

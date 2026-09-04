@@ -6,5 +6,7 @@
 	"ext.markdown.installXclip": "Сначала необходимо установить команду xclip.",
 	"ext.markdown.wikilinkNotFound": "Цель викиссылки не найдена: $1",
 	"ext.markdown.selectImage": "Выбрать изображение",
-	"ext.markdown.statusBar": "Строка $1 Символов $2"
+	"ext.markdown.statusBar": "Строка $1 Символов $2",
+	"config.editorFontSize": "Размер шрифта редактора для Reading Surface (в пикселях). Значение 0 следует настройке editor.fontSize в VS Code; диапазон переопределения — 12–28 пикселей.",
+	"config.frontMatterPresentation": "Представление Frontmatter для метаданных YAML. Таблица сохраняет возможность редактирования; chips компактно показывают короткие значения."
 }

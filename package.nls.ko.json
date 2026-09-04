@@ -6,5 +6,7 @@
 	"ext.markdown.installXclip": "먼저 xclip 명령을 설치해야 합니다.",
 	"ext.markdown.wikilinkNotFound": "위키링크 대상을 찾을 수 없습니다: $1",
 	"ext.markdown.selectImage": "이미지 선택",
-	"ext.markdown.statusBar": "줄 $1 글자 수 $2"
+	"ext.markdown.statusBar": "줄 $1 글자 수 $2",
+	"config.editorFontSize": "Reading Surface의 편집기 글꼴 크기(픽셀)입니다. 0으로 설정하면 VS Code의 editor.fontSize를 따르며, 재정의 범위는 12~28픽셀입니다.",
+	"config.frontMatterPresentation": "YAML 메타데이터의 Frontmatter Presentation입니다. 표는 편집 가능한 보기를 유지하고 chips는 짧은 값을 간결하게 표시합니다."
 }

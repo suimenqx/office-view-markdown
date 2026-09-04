@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="160" viewBox="0 0 480 160" role="img" aria-labelledby="title desc">
+  <title id="title">Reading Surface sample</title>
+  <desc id="desc">A small local image used by the UX polish smoke fixture.</desc>
+  <rect width="480" height="160" rx="16" fill="#0d1117" />
+  <rect x="24" y="24" width="432" height="112" rx="10" fill="#161b22" stroke="#30363d" />
+  <circle cx="56" cy="56" r="10" fill="#58a6ff" />
+  <rect x="82" y="49" width="170" height="14" rx="7" fill="#c9d1d9" />
+  <rect x="48" y="86" width="300" height="8" rx="4" fill="#8b949e" />
+  <rect x="48" y="106" width="220" height="8" rx="4" fill="#484f58" />
+</svg>
