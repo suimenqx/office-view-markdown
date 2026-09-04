@@ -332,6 +332,7 @@ export const input = (vditor: IVditor, range: Range, event?: InputEvent) => {
         enableAddUndoStack: true,
         enableHint: true,
         enableInput: true,
+        alertScope: remountScope,
     });
     markPostProcessStep("after render event");
     postProcessMs += debug ? performance.now() - stepStart : 0;

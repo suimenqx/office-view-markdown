@@ -270,5 +270,6 @@ export const input = (vditor: IVditor, range: Range, ignoreSpace = false, event?
         enableAddUndoStack: true,
         enableHint: true,
         enableInput: true,
+        alertScope: remountScope,
     });
 };

@@ -360,9 +360,15 @@ class Vditor {
         const vditor = this.vditor;
         vditor[vditor.currentMode].element.focus();
         if (vditor.currentMode === "ir") {
-            insertHTML(vditor.lute.Md2VditorIRDOM(markdown), vditor);
+            const rendered = document.createElement("div");
+            rendered.innerHTML = vditor.lute.Md2VditorIRDOM(markdown);
+            markGitHubAlertSourceTitles(rendered, markdown);
+            insertHTML(rendered.innerHTML, vditor);
         } else if (vditor.currentMode === "wysiwyg") {
-            insertHTML(vditor.lute.Md2VditorDOM(markdown), vditor);
+            const rendered = document.createElement("div");
+            rendered.innerHTML = vditor.lute.Md2VditorDOM(markdown);
+            markGitHubAlertSourceTitles(rendered, markdown);
+            insertHTML(rendered.innerHTML, vditor);
         } else {
             document.execCommand("insertText", false, markdown);
         }
