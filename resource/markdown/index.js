@@ -36,9 +36,6 @@ handler.on("open", async (md) => {
       handler.emit('doSave', getMarkdownValue());
       editor?.markSaved();
     }),
-    onAboutOpen: () => handler.emit('openAbout'),
-    onSponsorLogoClick: () => handler.emit('openSponsor'),
-    onSponsorSiteClick: () => handler.emit('openExternal', 'https://database-client.com/'),
     onLinkClick(payload, event) {
       const isCompose = event.metaKey || event.ctrlKey;
       if (payload.action !== "dblclick" && !(payload.action === "click" && isCompose)) {

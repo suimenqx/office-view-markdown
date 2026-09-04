@@ -17,8 +17,6 @@ const nodeBuiltinStubs = ['fs', 'child_process', 'os', 'crypto', 'stream', 'http
 function createNodeShimPlugin() {
     const shimDir = resolve(__dirname, 'src/shims');
     const packageStubs = {
-        'puppeteer-core': 'puppeteer-core.ts',
-        'chrome-finder': 'chrome-finder.ts',
         'file-type': 'file-type.ts',
     };
     return {
@@ -26,12 +24,6 @@ function createNodeShimPlugin() {
         setup(build) {
             build.onResolve({ filter: /^path$/ }, () => ({ path: resolve(shimDir, 'path.ts') }));
             build.onResolve({ filter: /^node:path$/ }, () => ({ path: resolve(shimDir, 'path.ts') }));
-            build.onResolve({ filter: /markdown[\\/]markdown-pdf(\.js)?$/ }, () => ({
-                path: resolve(shimDir, 'markdown-pdf.ts'),
-            }));
-            build.onResolve({ filter: /markdown[\\/]html-export\.js$/ }, () => ({
-                path: resolve(shimDir, 'markdown-pdf.ts'),
-            }));
             for (const [moduleName, stubFile] of Object.entries(packageStubs)) {
                 build.onResolve({ filter: new RegExp(`^${moduleName}$`) }, () => ({
                     path: resolve(shimDir, stubFile),

@@ -94,8 +94,6 @@ export class Options {
         lastLightEditorTheme: "Light",
         lastDarkEditorTheme: "One Dark",
         mermaidTheme: "Auto",
-        onSponsorLogoClick: undefined,
-        onSponsorSiteClick: undefined,
     };
 
     constructor(options: IOptions) {

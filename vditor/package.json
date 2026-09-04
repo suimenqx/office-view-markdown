@@ -2,7 +2,7 @@
   "name": "vscode-vditor",
   "version": "4.0.0",
   "description": "♏ 易于使用的 Markdown 编辑器，为适配不同的应用场景而生",
-  "author": "cweijan",
+  "author": "suimenqx",
   "homepage": "https://github.com/vscode-ext-studio/vditor",
   "scripts": {
     "lint": "eslint --fix --ext src/**/*.ts",

@@ -6,7 +6,7 @@ const vscode = require('vscode');
 suite('office-view-markdown smoke', function () {
   this.timeout(90000);
 
-  const extensionId = 'cweijan.office-view-markdown';
+  const extensionId = 'suimenqx.office-view-markdown';
   const viewType = 'office-view-markdown.markdownViewer';
   const evidenceDir = path.join(__dirname, '..', '..', 'test-results');
 
