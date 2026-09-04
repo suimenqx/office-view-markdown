@@ -46,10 +46,15 @@ Package a VSIX with:
 npm run package
 ```
 
-## Credits
+## Attribution and acknowledgments
+
+Office View Markdown is a Markdown-only product derived from
+[vscode-office](https://github.com/cweijan/vscode-office), created by Weijan Chen
+([cweijan](https://github.com/cweijan)). This project retains the upstream MIT
+license and copyright notice; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 The Markdown editor is based on [Vditor](https://github.com/Vanessa219/vditor).
 
 ## License
 
-See [LICENSE](LICENSE).
+See [LICENSE](LICENSE) and [NOTICE](NOTICE).
