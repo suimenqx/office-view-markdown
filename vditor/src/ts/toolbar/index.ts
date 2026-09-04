@@ -19,7 +19,6 @@ import {MenuItem} from "./MenuItem";
 import {Outdent} from "./Outdent";
 import {Outline} from "./Outline";
 import {Redo} from "./Redo";
-import {AISettings} from "./AISettings";
 import {Settings} from "./Settings";
 import {bindToolbarTooltipDismiss, toggleSubMenu} from "./setToolbar";
 import {Undo} from "./Undo";
@@ -133,9 +132,6 @@ export class Toolbar {
                 break;
             case "code-theme":
                 menuItemObj = new CodeTheme(vditor, menuItem);
-                break;
-            case "ai-settings":
-                menuItemObj = new AISettings(vditor, menuItem);
                 break;
             case "settings":
                 menuItemObj = new Settings(vditor, menuItem);

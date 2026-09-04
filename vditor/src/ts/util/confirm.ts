@@ -1,7 +1,7 @@
 export function showConfirm(message: string, confirmLabel?: string): Promise<boolean> {
     const i = window.VditorI18n;
-    const okLabel = confirmLabel ?? (i?.aiDelete ?? "Delete");
-    const cancelLabel = i?.aiCancel ?? "Cancel";
+    const okLabel = confirmLabel ?? "Delete";
+    const cancelLabel = "Cancel";
 
     return new Promise(resolve => {
         const overlay = document.createElement("div");

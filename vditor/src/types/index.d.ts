@@ -466,26 +466,8 @@ interface IHint {
     extend?: IHintExtend[];
 }
 
-/** @link https://ld246.com/article/1549638745630#options */
-interface IAIPolishOptions {
-    goal?: string;
-    prompt?: string;
-    engine?: "vscode" | "custom";
-    /** auto = follow UI language */
-    outputLanguage?: "auto" | "en_US" | "zh_CN" | "zh_TW" | "ja_JP" | "ko_KR" | "ru_RU";
-    /** Current editor UI language (vditor.options.lang) */
-    uiLanguage?: string;
-    vscodeModelId?: string;
-    customUrl?: string;
-    customKey?: string;
-    customModel?: string;
-    /** auto | openai | anthropic | gemini | ollama */
-    customApiFormat?: "auto" | "openai" | "anthropic" | "gemini" | "ollama";
-}
-
 type ViewerSettingsExport = {
     globalSettings: Record<string, boolean | number | string | undefined>;
-    aiPreferences: Record<string, string>;
 };
 
 interface IOptions {
@@ -592,14 +574,6 @@ interface IOptions {
 
     /** Mermaid 主题修改后触发 */
     changeMermaidTheme?(value: string): void;
-
-    /** AI 功能配置 */
-    ai?: {
-        /** AI 润色回调：接收 markdown 内容，处理完成后调用 apply 将结果写回编辑器 */
-        onPolish?(markdown: string, apply: (result: string) => void, options?: IAIPolishOptions): void;
-        /** 用户点击取消时触发 */
-        onCancelPolish?(): void;
-    };
 
     /** 编辑模式修改后触发 */
     changeEditMode?(value: string): void;

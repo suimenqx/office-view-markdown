@@ -1,17 +1,10 @@
 {
 	"extension.displayName": "Office View Markdown",
 	"extension.description": "real-time WYSIWYG Markdown editing and live preview",
-	"ext.common.yes": "YES",
-	"ext.common.no": "NO",
 	"ext.markdown.noClipboardImage": "There is not an image in the clipboard.",
 	"ext.markdown.noPasteDirectory": "Not support paste directory.",
 	"ext.markdown.installXclip": "You need to install xclip command first.",
 	"ext.markdown.wikilinkNotFound": "Wikilink target not found: $1",
-	"ext.markdown.aiRequiresVscode": "AI features require VS Code 1.90+ with a language model extension installed.",
-	"ext.markdown.noAiModel": "No AI language model available. Please install a language model extension (e.g. GitHub Copilot).",
-	"ext.markdown.aiPolishFailed": "AI Polish failed: $1",
-	"ext.markdown.customAiUrlRequired": "Custom AI: API URL is required.",
-	"ext.markdown.customAiPolishFailed": "Custom AI Polish failed: $1",
 	"ext.markdown.selectImage": "Select Image",
 	"ext.markdown.statusBar": "Line $1 Count $2"
 }

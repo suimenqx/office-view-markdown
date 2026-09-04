@@ -2,7 +2,6 @@ import "./assets/less/index.less";
 import * as adapterRender from "./ts/markdown/adapterRender";
 import { codeRender } from "./ts/markdown/codeRender";
 import { codeMirrorPreviewRender } from "./ts/codeBlock/codeMirrorPreviewRender";
-import { renderCodeBlocks } from "./ts/codeBlock/codeMirrorManager";
 import { mathRender } from "./ts/markdown/mathRender";
 import { mermaidRender } from "./ts/markdown/mermaidRender";
 import { outlineRender } from "./ts/markdown/outlineRender";
@@ -21,9 +20,6 @@ import { Tip } from "./ts/tip/index";
 import { Toolbar } from "./ts/toolbar/index";
 import { disableToolbar, hidePanel } from "./ts/toolbar/setToolbar";
 import { enableToolbar } from "./ts/toolbar/setToolbar";
-import { AIDialog } from "./ts/ui/aiDialog";
-import { telemetry } from "./ts/util/telemetry";
-import { AIReviewPanel } from "./ts/ui/aiReviewPanel";
 import { initUI } from "./ts/ui/initUI";
 import { setCodeTheme } from "./ts/ui/setCodeTheme";
 import { setEditorTheme as applyEditorTheme } from "./ts/ui/setEditorTheme";
@@ -39,16 +35,9 @@ import { clearDocumentScroll, restoreDocumentScroll } from "./ts/util/documentSt
 import { getSelectText } from "./ts/util/getSelectText";
 import { Options } from "./ts/util/Options";
 import { processCodeRender } from "./ts/util/processCode";
-import { hasClosestBlock } from "./ts/util/hasClosest";
-import { getCursorPosition, getEditorRange, insertHTML, insertMdForAIReplace, setSelectionFocus } from "./ts/util/selection";
+import { getCursorPosition, getEditorRange, insertHTML } from "./ts/util/selection";
 import { markOutlineEditing } from "./ts/outline/updateOutlineActive";
 import { recordHistoryChange } from "./ts/util/instantHistory";
-import {
-    captureEditorSelection,
-    hideFrozenSelection,
-    restoreEditorSelection,
-    showFrozenSelection,
-} from "./ts/util/frozenSelection";
 import { afterRenderEvent } from "./ts/wysiwyg/afterRenderEvent";
 import { renderToc } from "./ts/util/toc";
 import { scrollToBlock as scrollToBlockUtil } from "./ts/util/scrollToBlock";
@@ -63,10 +52,8 @@ import {
     setOnViewerSettingsChange,
     ViewerSettingsExport,
 } from "./ts/util/globalLocalStorageSettings";
-import { exportExportSettings, ExportThemeSettings } from "./ts/util/exportThemeSettings";
 import {
     buildSettingsPanelHTML,
-    refreshAISettingsToolbarPanel,
     refreshSettingsToolbarPanel,
 } from "./ts/ui/settingsPanel";
 import { WYSIWYG } from "./ts/wysiwyg/index";
@@ -88,11 +75,6 @@ class Vditor {
 
     public readonly version: string;
     public vditor: IVditor;
-    private aiDialog: AIDialog | null = null;
-    private aiSelectionRange: Range | null = null;
-    private aiReviewPanel: AIReviewPanel = new AIReviewPanel();
-    private aiReplaceAll = false;
-
     /**
      * @param id 要挂载 Vditor 的元素或者元素 ID。
      * @param options Vditor 参数
@@ -415,16 +397,6 @@ class Vditor {
         this.vditor.undo.addToUndoStack(this.vditor);
     }
 
-    /** 设置 Github Copilot（VS Code Language Model API）是否可选 */
-    public setCopilotAvailable(available: boolean) {
-        this.aiDialog?.setCopilotAvailable(available);
-    }
-
-    /** 设置可用的 VS Code 语言模型列表 */
-    public setVSCodeModels(models: Array<{ id: string; name: string; family: string; vendor: string }>) {
-        this.aiDialog?.setVSCodeModels(models);
-    }
-
     /** 启用或禁用配置文件同步 */
     public setViewerSettingsSyncEnabled(enabled: boolean) {
         enableViewerSettingsSync(enabled);
@@ -453,114 +425,6 @@ class Vditor {
             panelElement.innerHTML = buildSettingsPanelHTML(this.vditor);
         }
         refreshSettingsToolbarPanel(this.vditor);
-        refreshAISettingsToolbarPanel(this.vditor);
-    }
-
-    /** 打开 AI 润色弹窗，由外部（右键菜单等）调用 */
-    public openAIPolishDialog() {
-        if (!this.aiDialog) { return; }
-        const sel = this.getSelection();
-        this.aiSelectionRange = captureEditorSelection(this.vditor);
-        if (this.aiSelectionRange) {
-            showFrozenSelection(this.vditor, this.aiSelectionRange);
-        }
-        this.aiDialog.open(sel || this.getValue(), !!sel);
-    }
-
-    /** 触发 AI 润色。capturedMarkdown/isSelection 由调用方在失焦前预先捕获，避免选区丢失 */
-    public triggerAIPolish(options?: IAIPolishOptions, capturedMarkdown?: string, isSelection?: boolean) {
-        const onPolish = this.vditor.options.ai?.onPolish;
-        if (!onPolish) { return; }
-        const replaceAll = isSelection !== undefined ? !isSelection : !this.getSelection();
-        this.aiReplaceAll = replaceAll;
-        const markdown = capturedMarkdown ?? (this.getSelection() || this.getValue());
-        this.disabled();
-        if (this.aiSelectionRange) {
-            showFrozenSelection(this.vditor, this.aiSelectionRange);
-        }
-        const finishReview = (cancel = false, restoreSelection = true) => {
-            const range = this.aiSelectionRange;
-            const hadSelection = !!range && !this.aiReplaceAll;
-            this.enable();
-            hideFrozenSelection(this.vditor);
-            this.aiSelectionRange = null;
-            this.aiReviewPanel.close();
-            if (restoreSelection && hadSelection) {
-                restoreEditorSelection(this.vditor, range);
-            } else if (restoreSelection) {
-                this.focus();
-            }
-            if (cancel) {
-                this.vditor.options.ai?.onCancelPolish?.();
-            }
-        };
-        this.aiReviewPanel.open(
-            markdown,
-            {
-                onAccept: (result) => {
-                    const range = this.aiSelectionRange?.cloneRange() || null;
-                    finishReview(false, false);
-                    this.applyAIResult(result, this.aiReplaceAll, range);
-                },
-                onReject: () => finishReview(false),
-                onStop: () => finishReview(true),
-            },
-        );
-        telemetry(this.vditor, "markdown.ai.polish", {
-            engine: options?.engine ?? "vscode",
-            isSelection: !replaceAll,
-        });
-        onPolish(markdown, (_result: string) => { /* streaming via streamAIChunk/endAIStream */ }, options);
-    }
-
-    /** 流式接收 AI chunk，实时更新 diff 审阅面板 */
-    public streamAIChunk(chunk: string) {
-        this.aiReviewPanel.stream(chunk);
-    }
-
-    /** AI 流结束，启用 Accept 按钮 */
-    public endAIStream() {
-        this.aiReviewPanel.endStream();
-    }
-
-    /** 接收 AI 润色结果：退出 loading 状态，将 markdown 并入正文 */
-    public applyAIResult(markdown: string, replaceAll = false, selectionRange?: Range | null) {
-        this.enable();
-        hideFrozenSelection(this.vditor);
-        if (replaceAll) {
-            this.aiSelectionRange = null;
-            this.setValue(markdown);
-        } else {
-            const range = selectionRange ?? this.aiSelectionRange;
-            this.aiSelectionRange = null;
-            const editor = this.vditor[this.vditor.currentMode].element;
-            const hostBlock = hasClosestBlock(range.startContainer) as HTMLElement | null;
-            if (range && !range.collapsed
-                && editor.contains(range.startContainer)
-                && editor.contains(range.endContainer)) {
-                this.vditor[this.vditor.currentMode].preventInput = true;
-                range.deleteContents();
-                range.collapse(true);
-                setSelectionFocus(range);
-                this.vditor[this.vditor.currentMode].range = range;
-            } else {
-                restoreEditorSelection(this.vditor, range);
-                this.vditor[this.vditor.currentMode].preventInput = true;
-                document.execCommand("delete", false);
-            }
-            const editorHTML = this.vditor.currentMode === "wysiwyg"
-                ? this.vditor.lute.Md2VditorDOM(markdown.trim())
-                : this.vditor.lute.Md2VditorIRDOM(markdown.trim());
-            insertMdForAIReplace(editorHTML, this.vditor, hostBlock);
-            editor.querySelectorAll(`.vditor-${this.vditor.currentMode}__preview[data-render='2']`)
-                .forEach((item: HTMLElement) => {
-                    processCodeRender(item, this.vditor);
-                });
-            if (this.vditor.currentMode === "wysiwyg") {
-                renderCodeBlocks(this.vditor);
-            }
-            recordHistoryChange(this.vditor);
-        }
     }
 
     /** 销毁编辑器 */
@@ -626,17 +490,6 @@ class Vditor {
             });
 
             initUI(this.vditor);
-
-            if (mergedOptions.ai?.onPolish) {
-                this.aiDialog = new AIDialog(this.vditor, (markdown, isSelection, options) => {
-                    this.triggerAIPolish(options, markdown, isSelection);
-                }, (reason) => {
-                    if (reason !== "submit") {
-                        hideFrozenSelection(this.vditor);
-                        this.aiSelectionRange = null;
-                    }
-                });
-            }
 
             if (mergedOptions.after) {
                 mergedOptions.after();

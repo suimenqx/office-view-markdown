@@ -154,9 +154,6 @@ export const blurEvent = (vditor: IVditor, editorElement: HTMLElement) => {
         }
         clearActiveHeadingMarker(vditor);
         const relatedTarget = event.relatedTarget as HTMLElement | null;
-        if (relatedTarget?.closest(".vditor-ai-dialog-overlay")) {
-            return;
-        }
         if (!relatedTarget || (!isInsideCodeMirror(relatedTarget) && !isInsideCodeBlockChrome(relatedTarget))) {
             vditor[vditor.currentMode].range = getEditorRange(vditor);
             saveCacheFocus(vditor);

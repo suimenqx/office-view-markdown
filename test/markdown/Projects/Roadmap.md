@@ -9,7 +9,6 @@
 
 - Obsidian Callout / WikiLink / Tag
 - 特殊块 CodeMirror（math、mermaid、plantuml）
-- AI 对话框
 
 ## Q3 2026
 

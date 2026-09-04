@@ -3,13 +3,11 @@
  */
 import * as vscode from 'vscode';
 import { Global } from './common/global';
-import { FileUtil } from './common/fileUtil';
 import { MarkdownEditorProvider } from './provider/markdownEditorProvider';
 import { MarkdownService } from './service/markdownService';
 
 export async function activate(context: vscode.ExtensionContext) {
 	await Global.init(context);
-	FileUtil.init(context);
 
 	const viewOption = { webviewOptions: { retainContextWhenHidden: true } };
 	const markdownService = new MarkdownService(context);

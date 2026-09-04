@@ -10,7 +10,6 @@ cat > "$USER_DATA/User/settings.json" << 'JSON'
 {
   "workbench.startupEditor": "none",
   "workbench.welcomePage.walkthroughs.openOnInstall": false,
-  "chat.disableAIFeatures": true,
   "telemetry.telemetryLevel": "off",
   "window.restoreWindows": "none",
   "workbench.editorAssociations": {

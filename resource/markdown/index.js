@@ -1,10 +1,9 @@
-import { getToolbar, bindShortcut, createContextMenu, setAIAvailable, } from "./util.js";
+import { getToolbar, bindShortcut, createContextMenu, } from "./util.js";
 import { observeWorkspaceAbsoluteImages, createMarkdownValueReader, restoreWorkspaceBaseUrls, } from "./imagePath.js";
 import { mapVscodeLanguageToVditorLang } from "./lang.js";
 
 handler.on("open", async (md) => {
-  const { content, rootPath, workspaceBaseUrl, documentCacheId, pendingFragment, shouldRestoreFocus, config, fileName } = md;
-  window.__officeMarkdownFileName = fileName || 'Note';
+  const { content, rootPath, workspaceBaseUrl, documentCacheId, pendingFragment, shouldRestoreFocus, config } = md;
   const {
     language, isWeb, isDev, markdown,
     editMode, editorTheme, codeMirrorTheme, mermaidTheme
@@ -32,7 +31,7 @@ handler.on("open", async (md) => {
     mermaidTheme,
     lang: mapVscodeLanguageToVditorLang(language),
     tab: '\t',
-    toolbar: await getToolbar(rootPath, () => {
+    toolbar: await getToolbar(() => {
       handler.emit('doSave', getMarkdownValue());
       editor?.markSaved();
     }),
@@ -63,7 +62,6 @@ handler.on("open", async (md) => {
       handler.emit("openLink", uri);
     },
     debugger: isDev,
-    wysiwygInputPerf: isDev && false,
     changeEditorTheme(theme) {
       handler.emit('editorTheme', theme)
     },
@@ -96,17 +94,6 @@ handler.on("open", async (md) => {
         reader.onloadend = () => {
           handler.emit("img", { data: reader.result, ext })
         };
-      }
-    },
-    onTelemetry(event, properties) {
-      handler.emit('telemetry', { event, properties });
-    },
-    ai: {
-      onPolish(markdown, apply, options) {
-        handler.emit('aiPolish', { markdown, options })
-      },
-      onCancelPolish() {
-        handler.emit('aiPolishCancel')
       }
     },
     preview: {
@@ -160,22 +147,6 @@ handler.on("open", async (md) => {
         if (fragment) {
           editor.scrollToBlock(fragment);
         }
-      })
-      handler.emit('queryAIAvailable')
-      handler.on("aiAvailable", (available) => {
-        setAIAvailable(available, editor)
-        if (available) {
-          handler.emit('queryVSCodeModels')
-        }
-      })
-      handler.on("vscodeModels", (models) => {
-        editor.setVSCodeModels(models)
-      })
-      handler.on('aiPolishChunk', (chunk) => {
-        editor.streamAIChunk(chunk)
-      })
-      handler.on('aiPolishEnd', () => {
-        editor.endAIStream()
       })
       editor.restoreDocumentSession(true, !!shouldRestoreFocus)
       if (pendingFragment) {

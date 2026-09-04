@@ -719,67 +719,6 @@ export const setRangeByWbr = (element: HTMLElement, range: Range) => {
     setSelectionFocus(range);
 };
 
-const isEmptyParagraphBlock = (element: Element | null): boolean => {
-    return !!element
-        && element.tagName === "P"
-        && (element as HTMLElement).getAttribute("data-block") === "0"
-        && (element as HTMLElement).textContent.trim().replaceAll(Constants.ZWSP, "") === "";
-};
-
-const removeAdjacentEmptyParagraphs = (block: HTMLElement) => {
-    const prev = block.previousElementSibling;
-    const next = block.nextElementSibling;
-    if (isEmptyParagraphBlock(prev)) {
-        prev.remove();
-    }
-    if (isEmptyParagraphBlock(next)) {
-        next.remove();
-    }
-};
-
-/** Md2Vditor 转出的 HTML 在局部替换前规范化，避免误走块级插入 */
-export const normalizeMdInsertHtml = (html: string, vditor: IVditor): string => {
-    const tempElement = document.createElement("div");
-    tempElement.innerHTML = html;
-    while (tempElement.firstElementChild && isEmptyParagraphBlock(tempElement.firstElementChild)) {
-        tempElement.firstElementChild.remove();
-    }
-    const tempBlockElement = tempElement.querySelectorAll("p");
-    if (tempBlockElement.length === 1 && !tempBlockElement[0].previousSibling && !tempBlockElement[0].nextSibling
-        && vditor[vditor.currentMode].element.children.length > 0 && tempElement.firstElementChild?.tagName === "P") {
-        return tempBlockElement[0].innerHTML.replace(/^(<br\s*\/?>\s*)+/i, "").trim();
-    }
-    return tempElement.innerHTML;
-};
-
-/** AI 局部替换：强制行内插入，避免 insertHTML 块级路径留下前置空段落 */
-export const insertMdForAIReplace = (html: string, vditor: IVditor, hostBlock: HTMLElement | null) => {
-    let insertHtml = normalizeMdInsertHtml(html, vditor);
-    const temp = document.createElement("div");
-    temp.innerHTML = insertHtml;
-    if (temp.children.length === 1) {
-        const child = temp.firstElementChild as HTMLElement;
-        if (child.getAttribute("data-block") === "0" && child.tagName === "P") {
-            insertHtml = child.innerHTML.replace(/^(<br\s*\/?>\s*)+/i, "").trim();
-        }
-    }
-    const range = getEditorRange(vditor);
-    vditor[vditor.currentMode].preventInput = true;
-    const pasteTemplate = document.createElement("template");
-    pasteTemplate.innerHTML = insertHtml;
-    range.insertNode(pasteTemplate.content.cloneNode(true));
-    range.collapse(false);
-    setSelectionFocus(range);
-    vditor[vditor.currentMode].range = range;
-    if (hostBlock && isEmptyParagraphBlock(hostBlock)) {
-        hostBlock.remove();
-    }
-    const currentBlock = hasClosestBlock(range.startContainer);
-    if (currentBlock) {
-        removeAdjacentEmptyParagraphs(currentBlock as HTMLElement);
-    }
-};
-
 export const insertHTML = (html: string, vditor: IVditor) => {
     // 使用 lute 方法会添加 p 元素，只有一个 p 元素的时候进行删除
     const tempElement = document.createElement("div");

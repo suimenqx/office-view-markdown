@@ -292,14 +292,6 @@ const isEditorFocused = (vditor: IVditor) => {
 /** 有打开的弹窗/浮层时不应自动抢回编辑器焦点，否则会把弹窗关掉 */
 const hasOpenEditorOverlay = (vditor: IVditor) => {
     const root = vditor.element;
-    const aiDialog = root.querySelector<HTMLElement>(".vditor-ai-dialog-overlay");
-    if (aiDialog && !aiDialog.hidden) {
-        return true;
-    }
-    const aiOverlay = root.querySelector<HTMLElement>(".vditor-ai-overlay");
-    if (aiOverlay && !aiOverlay.hidden) {
-        return true;
-    }
     if (document.querySelector(".vditor-confirm-overlay") || document.querySelector(".vditor-img-overlay")) {
         return true;
     }

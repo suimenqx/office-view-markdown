@@ -1,13 +1,6 @@
 import { isAbsolute, parse } from 'path';
 import * as vscode from 'vscode';
-import { ensureParentDirectory } from './workspaceFs';
 import { Global } from './global';
-
-export async function writeFile(path: string, buffer: Uint8Array) {
-    const uri = vscode.Uri.file(path);
-    await ensureParentDirectory(uri);
-    await vscode.workspace.fs.writeFile(uri, buffer);
-}
 
 export function adjustImgPath(uri: vscode.Uri, ext: string = 'png') {
     const now = new Date();
@@ -56,31 +49,4 @@ export function getWorkspacePath(uri: vscode.Uri): string {
         }
     }
     return workspacePath;
-}
-
-export class FileUtil {
-    private static context: vscode.ExtensionContext;
-    public static init(context: vscode.ExtensionContext) {
-        this.context = context;
-    }
-    public static async getLastPath(key: string | string[], path = '') {
-        // 获取已经保存的路径
-        let basePath: string;
-        if (!Array.isArray(key)) { key = [key] }
-        for (const itemKey of key) {
-            basePath = this.context.globalState.get(itemKey + 'SelectorPath');
-            if (basePath) break;
-        }
-        if (basePath) {
-            const baseUri = vscode.Uri.file(basePath);
-            try {
-                await vscode.workspace.fs.stat(baseUri);
-            } catch {
-                basePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '';
-            }
-        } else {
-            basePath = '';
-        }
-        return vscode.Uri.file(basePath + path);
-    }
 }

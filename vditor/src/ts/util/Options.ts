@@ -272,9 +272,6 @@ export class Options {
             icon: getToolbarCodicon("help"),
             name: "help",
         }, {
-            icon: getToolbarCodicon("ai-settings"),
-            name: "ai-settings",
-        }, {
             name: "br",
         }];
         const toolbarResult: IMenuItem[] = [];

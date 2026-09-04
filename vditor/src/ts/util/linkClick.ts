@@ -56,10 +56,6 @@ export const resolveLinkClickFromTarget = (
     if (isInsideCodeMirror(target) || isInsideCodeBlockChrome(target)) {
         return null;
     }
-    if (target.closest(".vditor-ai-dialog-overlay")) {
-        return null;
-    }
-
     const footnoteRef = hasClosestByAttribute(target, "data-type", "footnotes-ref");
     if (footnoteRef) {
         const label = footnoteRef.getAttribute("data-footnotes-label") || footnoteRef.textContent?.trim() || "";

@@ -4,10 +4,6 @@ import { initI18n, localize } from './vscode-nls-i18n';
 
 const prefix = 'office-view-markdown';
 
-export function language() {
-    return vscode.env.language;
-}
-
 export function i18n(key: string, ...args: string[]) {
     return localize(key, ...args);
 }

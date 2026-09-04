@@ -304,12 +304,12 @@ export const showFrontMatterEditorPopover = (vditor: IVditor, blockElement: HTML
     const saveButton = document.createElement("button");
     saveButton.type = "button";
     saveButton.className = "vditor-html-inline-popover__button vditor-html-inline-popover__button--primary";
-    saveButton.textContent = window.VditorI18n?.aiSave ?? "Save";
+    saveButton.textContent = "Save";
 
     const cancelButton = document.createElement("button");
     cancelButton.type = "button";
     cancelButton.className = "vditor-html-inline-popover__button vditor-html-inline-popover__button--cancel";
-    cancelButton.textContent = window.VditorI18n?.aiCancel ?? "Cancel";
+    cancelButton.textContent = "Cancel";
 
     const initialSource = getYamlSourceFromBlock(blockElement);
     const blockRef = blockElement;

@@ -13,7 +13,6 @@
 - Markdown previews for code blocks, math, Mermaid, PlantUML, and embedded images
 - Outline navigation, wiki links, document-state restoration, and editor themes
 - Markdown image insertion and desktop clipboard-image paste
-- AI-assisted polishing through VS Code language models or a custom provider configured in the editor
 - Desktop and web extension hosts
 
 The extension associates `.md` and `.markdown` files with **Office View Markdown**. To use VS Code's built-in text editor instead, add:

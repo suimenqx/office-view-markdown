@@ -1,13 +1,9 @@
 import { createMarkdownValueReader } from "./imagePath.js";
 
-function loadRes(url) {
-    return fetch(url).then(r => r.text())
-}
-
 const isMac = navigator.userAgent.includes('Mac OS');
 const shortcutTip = isMac ? '⌘ ^ E' : 'Ctrl Alt E';
 
-export async function getToolbar(resPath, onSave = null) {
+export async function getToolbar(onSave = null) {
     const codicon = (name) => `<span class="codicon codicon-${name}" aria-hidden="true"></span>`;
     return [
         'outline',
@@ -54,7 +50,6 @@ export async function getToolbar(resPath, onSave = null) {
         "redo",
         "|",
         "find",
-        "ai-settings",
         "settings"
     ]
 }
@@ -159,10 +154,6 @@ const copyPlainText = async (text) => {
     textarea.remove()
 }
 
-export const setAIAvailable = (available, editor) => {
-    editor?.setCopilotAvailable?.(available);
-}
-
 export const createContextMenu = (editor) => {
     const menu = document.getElementById('context-menu')
 
@@ -207,9 +198,6 @@ export const createContextMenu = (editor) => {
                 break
             case 'insertImage':
                 vscodeEvent.emit('insertImage')
-                break
-            case 'aiPolish':
-                editor.openAIPolishDialog()
                 break
         }
     })
