@@ -11,6 +11,7 @@ import {getHistoryMaxWaitFactor, getHistoryRecordWait} from "../util/historySche
 import {scheduleRenderToc} from "../util/toc";
 import {highlightToolbarIR} from "./highlightToolbarIR";
 import {input} from "./input";
+import {applyGitHubAlertClasses} from "../markdown/githubAlerts";
 
 export const processHint = (vditor: IVditor) => {
     vditor.hint.render(vditor);
@@ -58,6 +59,7 @@ export const processAfterRender = (vditor: IVditor, options = {
     enableHint: false,
     enableInput: true,
 }) => {
+    applyGitHubAlertClasses(vditor[vditor.currentMode].element);
     if (options.enableHint) {
         processHint(vditor);
     }

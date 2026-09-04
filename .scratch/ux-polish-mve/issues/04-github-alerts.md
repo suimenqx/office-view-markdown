@@ -4,9 +4,11 @@
 
 **Blocked by:** 01 Design Tokens foundation
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Alert markers receive semantic alert classes / styling
-- [ ] Non-alert blockquotes unchanged
-- [ ] Edit round-trip preserves original Markdown (presentation-only; ADR 0005)
-- [ ] Pure-function or equivalent seam maps marker → class and is unit-tested
+- [x] Alert markers receive semantic alert classes / styling
+- [x] Non-alert blockquotes unchanged
+- [x] Edit round-trip preserves original Markdown (presentation-only; ADR 0005)
+- [x] Pure-function or equivalent seam maps marker → class and is unit-tested
+
+**Comments:** Added presentation-only GitHub Alert class mapping for NOTE, TIP, WARNING, CAUTION, and IMPORTANT markers, with semantic info/success/warning/error styling. The marker text and Markdown conversion path are untouched; ordinary blockquotes receive no alert class. Verified with `node test/unit/githubAlerts.test.js` and `npm run build`.
