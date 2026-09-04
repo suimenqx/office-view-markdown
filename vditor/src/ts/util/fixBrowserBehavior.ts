@@ -34,6 +34,7 @@ import {
 } from "./selection";
 import { expandMarkerWithMathSync } from "../ir/expandMarkerSync";
 import { Constants } from "../constants";
+import { isTableBlockElement, resolveTableElement } from "../preview/tableWrapper";
 
 const finishTableCellNavigation = (vditor: IVditor, range: Range, cell: HTMLTableCellElement, atEnd: boolean) => {
     focusTableCellContent(range, cell, atEnd);
@@ -256,7 +257,7 @@ export const insertAfterBlock = (vditor: IVditor, event: KeyboardEvent, range: R
         (event.key === "ArrowRight" && position.start >= element.textContent.trimRight().length)) {
         const nextElement = blockElement.nextElementSibling;
         if (!nextElement ||
-            (nextElement && (nextElement.tagName === "TABLE" || nextElement.getAttribute("data-type")))) {
+            (nextElement && (isTableBlockElement(nextElement) || nextElement.getAttribute("data-type")))) {
             blockElement.insertAdjacentHTML("afterend",
                 `<p data-block="0">${Constants.ZWSP}<wbr></p>`);
             setRangeByWbr(vditor[vditor.currentMode].element, range);
@@ -280,7 +281,7 @@ export const insertBeforeBlock = (vditor: IVditor, event: KeyboardEvent, range: 
         const previousElement = blockElement.previousElementSibling;
         // table || code
         if (!previousElement ||
-            (previousElement && (previousElement.tagName === "TABLE" || previousElement.getAttribute("data-type")))) {
+            (previousElement && (isTableBlockElement(previousElement) || previousElement.getAttribute("data-type")))) {
             blockElement.insertAdjacentHTML("beforebegin",
                 `<p data-block="0">${Constants.ZWSP}<wbr></p>`);
             setRangeByWbr(vditor[vditor.currentMode].element, range);
@@ -1624,10 +1625,11 @@ export const fixDelete = (vditor: IVditor, range: Range, event: KeyboardEvent, p
     if (pElement) {
         const previousElement = pElement.previousElementSibling;
         if (previousElement && getSelectPosition(pElement, vditor[vditor.currentMode].element, range).start === 0 &&
-            ((isFirefox() && previousElement.tagName === "HR") || previousElement.tagName === "TABLE")) {
-            if (previousElement.tagName === "TABLE") {
+            ((isFirefox() && previousElement.tagName === "HR") || isTableBlockElement(previousElement))) {
+            const previousTable = resolveTableElement(previousElement);
+            if (previousTable) {
                 // table 后删除 https://github.com/Vanessa219/vditor/issues/243
-                const lastCellElement = previousElement.lastElementChild.lastElementChild.lastElementChild;
+                const lastCellElement = previousTable.lastElementChild.lastElementChild.lastElementChild;
                 lastCellElement.innerHTML =
                     lastCellElement.innerHTML.trimLeft() + "<wbr>" + pElement.textContent.trim();
                 pElement.remove();
@@ -1656,15 +1658,22 @@ export const fixFirefoxArrowUpTable = (event: KeyboardEvent, blockElement: false
     if (!isFirefox()) {
         return false;
     }
-    if (event.key === "ArrowUp" && blockElement && blockElement.previousElementSibling?.tagName === "TABLE") {
-        const tableElement = blockElement.previousElementSibling as HTMLTableElement;
+    if (event.key === "ArrowUp" && blockElement && isTableBlockElement(blockElement.previousElementSibling)) {
+        const tableElement = resolveTableElement(blockElement.previousElementSibling);
+        if (!tableElement) {
+            return false;
+        }
         range.selectNodeContents(tableElement.rows[tableElement.rows.length - 1].lastElementChild);
         range.collapse(false);
         event.preventDefault();
         return true;
     }
-    if (event.key === "ArrowDown" && blockElement && blockElement.nextElementSibling?.tagName === "TABLE") {
-        range.selectNodeContents((blockElement.nextElementSibling as HTMLTableElement).rows[0].cells[0]);
+    if (event.key === "ArrowDown" && blockElement && isTableBlockElement(blockElement.nextElementSibling)) {
+        const tableElement = resolveTableElement(blockElement.nextElementSibling);
+        if (!tableElement) {
+            return false;
+        }
+        range.selectNodeContents(tableElement.rows[0].cells[0]);
         range.collapse(true);
         event.preventDefault();
         return true;

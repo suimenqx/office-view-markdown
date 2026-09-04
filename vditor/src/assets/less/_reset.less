@@ -309,15 +309,23 @@
       }
     }
 
+    .vditor-table-wrapper {
+      margin-bottom: 16px;
+      overflow: auto;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      max-width: 100%;
+
+      > table {
+        margin-bottom: 0;
+      }
+    }
+
     table {
       border-collapse: collapse;
       empty-cells: show;
       margin-bottom: 16px;
-      overflow: auto;
-      border-radius: var(--radius-sm);
       border-spacing: 0;
-      display: block;
-      box-shadow: var(--shadow-sm);
       word-break: keep-all;
       width: max-content;
       max-width: 100%;

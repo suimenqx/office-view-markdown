@@ -30,6 +30,7 @@ import { plantumlRender } from "../markdown/plantumlRender";
 import { stripGitHubAlertPresentation } from "../markdown/githubAlerts";
 import { removeActionableEmptyState } from "../ui/actionableEmptyState";
 import { stripImagePresentationFromClone } from "../preview/imageFigure";
+import { isTableBlockElement, stripTablePresentationFromClone } from "../preview/tableWrapper";
 import {
     deactivateInlineMathEditorsInScope,
     flushInlineMathToSyncCode,
@@ -1161,7 +1162,7 @@ const focusAdjacentEditorBlock = (
         if (isCmCodeBlock(previousElement)) {
             focusCodeMirror(previousElement, false, vditor);
         } else if (!previousElement ||
-            previousElement.tagName === "TABLE" ||
+            isTableBlockElement(previousElement) ||
             previousElement.getAttribute("data-type")) {
             insertAdjacentEmptyBlock("before");
         } else {
@@ -1174,7 +1175,7 @@ const focusAdjacentEditorBlock = (
     if (isCmCodeBlock(nextElement)) {
         focusCodeMirror(nextElement, true, vditor);
     } else if (!nextElement ||
-        nextElement.tagName === "TABLE" ||
+        isTableBlockElement(nextElement) ||
         nextElement.getAttribute("data-type")) {
         insertAdjacentEmptyBlock("after");
     } else {
@@ -2191,6 +2192,7 @@ export const buildEditorHtmlForMarkdown = (vditor: IVditor) => {
     }
     removeActionableEmptyState(clone);
     stripImagePresentationFromClone(clone);
+    stripTablePresentationFromClone(clone);
     clone.querySelectorAll("img[data-vditor-image-error='true']").forEach((img) => {
         img.removeAttribute("data-vditor-image-error");
         (img as HTMLElement).style.removeProperty("display");

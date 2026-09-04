@@ -25,6 +25,7 @@ import { handleAutoSymbolPair } from "./autoSymbol";
 import { handleVscodeShortcut } from "./vscodeShortcut";
 import { renderActionableEmptyState } from "../ui/actionableEmptyState";
 import { enhanceImagePresentation } from "../preview/imageFigure";
+import { enhanceTablePresentation } from "../preview/tableWrapper";
 import {
     EDITOR_FONT_SIZE_DEFAULT,
     EDITOR_FONT_SIZE_KEY,
@@ -139,8 +140,10 @@ export const wheelZoomFontSizeEvent = (vditor: IVditor, editorElement: HTMLEleme
 
 export const bindImageLoadingState = (editorElement: HTMLElement) => {
     editorElement.querySelectorAll<HTMLImageElement>("img").forEach(markImageLoading);
+    enhanceTablePresentation(editorElement);
 
     const observer = new MutationObserver((mutations) => {
+        let tablesChanged = false;
         for (const mutation of mutations) {
             mutation.addedNodes.forEach((node) => {
                 if (node.nodeType !== Node.ELEMENT_NODE) {
@@ -152,7 +155,13 @@ export const bindImageLoadingState = (editorElement: HTMLElement) => {
                 } else {
                     el.querySelectorAll<HTMLImageElement>("img").forEach(markImageLoading);
                 }
+                if (el.tagName === "TABLE" || !!el.querySelector("table")) {
+                    tablesChanged = true;
+                }
             });
+        }
+        if (tablesChanged) {
+            enhanceTablePresentation(editorElement);
         }
     });
     observer.observe(editorElement, { childList: true, subtree: true });

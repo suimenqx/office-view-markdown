@@ -4,8 +4,10 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Rounded corner clipping works with cell borders (wrapper or proven equivalent)
-- [ ] Header emphasis and row hover retained via Design Tokens
-- [ ] Table editing / structure round-trip not broken
+- [x] Rounded corner clipping works with cell borders (wrapper or proven equivalent)
+- [x] Header emphasis and row hover retained via Design Tokens
+- [x] Table editing / structure round-trip not broken
+
+**Comments:** Added `vditor-table-wrapper` presentation wrap (`tableWrapper.ts`) with radius/overflow/shadow on the wrapper; export clone unwraps. Sibling TABLE navigation uses `isTableBlockElement`/`resolveTableElement`. Covered by `test/unit/tableWrapper.test.js`.
