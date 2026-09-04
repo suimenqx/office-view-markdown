@@ -1,0 +1,34 @@
+{
+	"compilerOptions": {
+		"module": "ESNext",
+		"target": "es2019",
+		"outDir": "out",
+		"experimentalDecorators": true,
+		"lib": [
+			"dom",
+			"es6",
+			"es2017",
+			"es2019"
+		],
+		"sourceMap": true,
+		"paths": {
+            "@/*": [
+                "./src/*"
+            ]
+        },
+		"resolveJsonModule": true,
+		"moduleResolution": "node",
+		"ignoreDeprecations": "6.0",
+		"types": ["node", "vscode"],
+        "esModuleInterop": true,
+		"strict": false 
+	},
+	"exclude": [
+		"node_modules",
+		"vditor",
+		".vscode-test"
+	],
+	"include": [
+		"src"
+	]
+}

@@ -1,0 +1,222 @@
+{
+  "name": "office-view-markdown",
+  "displayName": "%extension.displayName%",
+  "description": "%extension.description%",
+  "version": "0.1.0",
+  "publisher": "suimenqx",
+  "icon": "image/logo.png",
+  "engines": {
+    "vscode": "^1.64.0"
+  },
+  "keywords": [
+    "markdown",
+    "wysiwyg",
+    "preview",
+    "editor"
+  ],
+  "categories": [
+    "Other"
+  ],
+  "bugs": {
+    "url": "https://github.com/suimenqx/office-view-markdown/issues"
+  },
+  "homepage": "https://github.com/suimenqx/office-view-markdown",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/suimenqx/office-view-markdown.git"
+  },
+  "activationEvents": [
+    "onCustomEditor:office-view-markdown.markdownViewer",
+    "onCommand:office-view-markdown.switch",
+    "onCommand:office-view-markdown.paste"
+  ],
+  "main": "./out/extension.js",
+  "browser": "./out/extension.web.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "office-view-markdown.switch",
+        "title": "Switch Markdown Editor",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "office-view-markdown.paste",
+        "title": "Enhance Paste in Markdown",
+        "enablement": "!office-view-markdown.extensionHost.web"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "office-view-markdown.paste",
+        "key": "ctrl+v",
+        "mac": "cmd+v",
+        "when": "editorTextFocus && resourceLangId == markdown && !office-view-markdown.extensionHost.web"
+      },
+      {
+        "command": "office-view-markdown.switch",
+        "key": "ctrl+alt+e",
+        "mac": "ctrl+cmd+e",
+        "when": "editorTextFocus && editorLangId == markdown"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "office-view-markdown.switch",
+          "when": "resourceExtname == '.md' || resourceExtname == '.markdown'",
+          "group": "navigation@-2"
+        }
+      ]
+    },
+    "customEditors": [
+      {
+        "viewType": "office-view-markdown.markdownViewer",
+        "displayName": "Office View Markdown",
+        "selector": [
+          {
+            "filenamePattern": "file:/**/*.md"
+          },
+          {
+            "filenamePattern": "file:/**/*.markdown"
+          },
+          {
+            "filenamePattern": "vscode-vfs:/**/*.md"
+          },
+          {
+            "filenamePattern": "vscode-vfs:/**/*.markdown"
+          },
+          {
+            "filenamePattern": "vscode-remote:/**/*.md"
+          },
+          {
+            "filenamePattern": "vscode-remote:/**/*.markdown"
+          }
+        ]
+      }
+    ],
+    "configuration": {
+      "title": "Markdown",
+      "properties": {
+        "office-view-markdown.editorTheme": {
+          "type": "string",
+          "enum": [
+            "Auto",
+            "Light",
+            "Solarized",
+            "Warm Light",
+            "Dim Light",
+            "One Dark",
+            "Github Dark",
+            "Nord",
+            "Monokai",
+            "Dracula"
+          ],
+          "default": "Auto",
+          "markdownDescription": "The theme for the Markdown editor."
+        },
+        "office-view-markdown.codeMirrorTheme": {
+          "type": "string",
+          "enum": [
+            "Auto",
+            "Github",
+            "Solarized Light",
+            "Material Light",
+            "Quiet Light",
+            "One Light",
+            "Dracula",
+            "Monokai",
+            "One Dark",
+            "Solarized Dark",
+            "Material Dark"
+          ],
+          "default": "Auto",
+          "markdownDescription": "CodeMirror syntax theme for code blocks in the Markdown editor."
+        },
+        "office-view-markdown.mermaidTheme": {
+          "type": "string",
+          "enum": [
+            "Auto",
+            "Light",
+            "Forest",
+            "Ocean",
+            "Sunset",
+            "Dark",
+            "Dracula",
+            "Monokai",
+            "Nord"
+          ],
+          "default": "Auto",
+          "markdownDescription": "Mermaid diagram theme in the Markdown editor. Auto follows the editor theme."
+        },
+        "office-view-markdown.editMode": {
+          "type": "string",
+          "enum": [
+            "wysiwyg",
+            "ir"
+          ],
+          "default": "wysiwyg",
+          "markdownDescription": "Default edit mode for the Markdown editor."
+        },
+        "office-view-markdown.restoreViewState": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Restore caret focus when opening a Markdown file. Scroll position is always restored."
+        },
+        "office-view-markdown.workspacePathAsImageBasePath": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use the workspace path as the base path for images embedded in Markdown."
+        },
+        "office-view-markdown.pasteImageToWorkspacePath": {
+          "type": "boolean",
+          "default": false,
+          "description": "Paste Markdown images into the workspace path and insert image links with a leading slash."
+        },
+        "office-view-markdown.pasterImgPath": {
+          "type": "string",
+          "default": "image/${fileName}/${now}.${ext}",
+          "description": "Markdown paste image path. Variables: workspaceDir, fileName, now, date (YYYYMMDD), uuid, and ext."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "dev": "vite --mode=development",
+    "dev:web": "OFFICE_EXTENSION_TARGET=web vite --mode=development",
+    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix",
+    "build": "vite build --mode=production",
+    "package": "vsce package --no-dependencies",
+    "publish": "vsce publish --no-dependencies && ovsx publish --no-dependencies",
+    "vscode:prepublish": "npm run build"
+  },
+  "dependencies": {
+    "@codemirror/autocomplete": "^6.20.3",
+    "@codemirror/commands": "^6.10.3",
+    "@codemirror/language": "^6.12.3",
+    "@codemirror/language-data": "^6.5.2",
+    "@codemirror/state": "^6.6.0",
+    "@codemirror/view": "^6.43.1",
+    "@lezer/highlight": "^1.2.3",
+    "@vscode/codicons": "^0.0.45",
+    "codemirror-lang-latex": "^0.4.1",
+    "codemirror-lang-mermaid": "^0.5.0",
+    "diff-match-patch": "1.0.5",
+    "file-type": "^19.6.0",
+    "save-svg-as-png": "^1.4.17"
+  },
+  "devDependencies": {
+    "@types/diff-match-patch": "1.0.32",
+    "@types/node": "^26.1.0",
+    "@types/vscode": "^1.64.0",
+    "@typescript-eslint/eslint-plugin": "^8.62.1",
+    "@typescript-eslint/parser": "^8.62.1",
+    "chokidar": "^5.0.0",
+    "esbuild": "^0.28.1",
+    "eslint": "^9.39.4",
+    "eslint-plugin-import-x": "^4.16.2",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "globals": "^17.7.0",
+    "less": "^4.2.0",
+    "vite": "^8.0.16"
+  }
+}

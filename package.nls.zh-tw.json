@@ -1,0 +1,17 @@
+{
+	"extension.displayName": "Office View Markdown",
+	"extension.description": "即時 WYSIWYG Markdown 編輯和即時預覽",
+	"ext.common.yes": "是",
+	"ext.common.no": "否",
+	"ext.markdown.noClipboardImage": "剪貼簿中沒有圖片。",
+	"ext.markdown.noPasteDirectory": "不支援貼上目錄。",
+	"ext.markdown.installXclip": "請先安裝 xclip 命令。",
+	"ext.markdown.wikilinkNotFound": "找不到雙鏈目標：$1",
+	"ext.markdown.aiRequiresVscode": "AI 功能需要 VS Code 1.90+ 並安裝語言模型擴充功能。",
+	"ext.markdown.noAiModel": "沒有可用的 AI 語言模型。請安裝語言模型擴充功能（如 GitHub Copilot）。",
+	"ext.markdown.aiPolishFailed": "AI 潤色失敗：$1",
+	"ext.markdown.customAiUrlRequired": "自訂 AI：API URL 為必填項。",
+	"ext.markdown.customAiPolishFailed": "自訂 AI 潤色失敗：$1",
+	"ext.markdown.selectImage": "選擇圖片",
+	"ext.markdown.statusBar": "行 $1 字數 $2"
+}

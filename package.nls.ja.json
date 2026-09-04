@@ -1,0 +1,17 @@
+{
+	"extension.displayName": "Office View Markdown",
+	"extension.description": "リアルタイムの WYSIWYG Markdown 編集とライブプレビュー",
+	"ext.common.yes": "はい",
+	"ext.common.no": "いいえ",
+	"ext.markdown.noClipboardImage": "クリップボードに画像がありません。",
+	"ext.markdown.noPasteDirectory": "ディレクトリの貼り付けはサポートされていません。",
+	"ext.markdown.installXclip": "先に xclip コマンドをインストールしてください。",
+	"ext.markdown.wikilinkNotFound": "ウィキリンクのターゲットが見つかりません: $1",
+	"ext.markdown.aiRequiresVscode": "AI 機能には VS Code 1.90 以降と言語モデル拡張機能が必要です。",
+	"ext.markdown.noAiModel": "利用可能な AI 言語モデルがありません。言語モデル拡張機能（例: GitHub Copilot）をインストールしてください。",
+	"ext.markdown.aiPolishFailed": "AI 校正に失敗しました: $1",
+	"ext.markdown.customAiUrlRequired": "カスタム AI: API URL は必須です。",
+	"ext.markdown.customAiPolishFailed": "カスタム AI 校正に失敗しました: $1",
+	"ext.markdown.selectImage": "画像を選択",
+	"ext.markdown.statusBar": "行 $1 文字数 $2"
+}

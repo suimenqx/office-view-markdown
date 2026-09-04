@@ -1,0 +1,17 @@
+{
+	"extension.displayName": "Office View Markdown",
+	"extension.description": "édition WYSIWYG de Markdown en temps réel et aperçu en direct",
+	"ext.common.yes": "OUI",
+	"ext.common.no": "NON",
+	"ext.markdown.noClipboardImage": "Aucune image dans le presse-papiers.",
+	"ext.markdown.noPasteDirectory": "Le collage de répertoires n'est pas pris en charge.",
+	"ext.markdown.installXclip": "Vous devez d'abord installer la commande xclip.",
+	"ext.markdown.wikilinkNotFound": "Cible du wikilink introuvable : $1",
+	"ext.markdown.aiRequiresVscode": "Les fonctionnalités IA nécessitent VS Code 1.90+ avec une extension de modèle de langage installée.",
+	"ext.markdown.noAiModel": "Aucun modèle de langage IA disponible. Veuillez installer une extension de modèle de langage (par ex. GitHub Copilot).",
+	"ext.markdown.aiPolishFailed": "Échec de la correction IA : $1",
+	"ext.markdown.customAiUrlRequired": "IA personnalisée : l'URL de l'API est requise.",
+	"ext.markdown.customAiPolishFailed": "Échec de la correction IA personnalisée : $1",
+	"ext.markdown.selectImage": "Sélectionner une image",
+	"ext.markdown.statusBar": "Ligne $1 Caractères $2"
+}
