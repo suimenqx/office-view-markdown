@@ -3,6 +3,7 @@ import {addScript} from "../util/addScript";
 import {plantumlRenderAdapter} from "./adapterRender";
 import {ensurePlantumlChrome} from "./plantumlChrome";
 import {buildPlantumlRenderUrl, normalizePlantumlServerBase} from "./plantumlUrl";
+import {renderActionableEmptyState} from "../ui/actionableEmptyState";
 
 declare const plantumlEncoder: {
     encode(options: string): string,
@@ -13,18 +14,16 @@ const PLANTUML_SOURCE_ATTR = "data-plantuml";
 const showPlantumlPlaceholder = (e: HTMLDivElement, text: string, vditor?: IVditor) => {
     e.setAttribute(PLANTUML_SOURCE_ATTR, text);
     e.classList.remove("vditor-reset--error");
-    e.innerHTML = `<div class="vditor-plantuml-placeholder" role="note">
-  <div class="vditor-plantuml-placeholder__title">PlantUML Server is not configured</div>
-  <div class="vditor-plantuml-placeholder__body">Diagram source is not sent anywhere until you set a PlantUML Server Base URL.</div>
-  <button type="button" class="vditor-plantuml-placeholder__action">Open Settings</button>
-</div>`;
-    const button = e.querySelector(".vditor-plantuml-placeholder__action") as HTMLButtonElement | null;
-    button?.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
+    renderActionableEmptyState(e, {
+        title: window.VditorI18n?.actionablePlantumlUnconfigured || "PlantUML Server is not configured",
+        body: window.VditorI18n?.actionablePlantumlUnconfiguredBody
+            || "Diagram source is not sent anywhere until you set a PlantUML Server Base URL.",
+        actionLabel: window.VditorI18n?.actionableOpenSettings || "Open Settings",
+        onAction: () => {
         if (typeof vditor?.options.onOpenPlantumlSettings === "function") {
             vditor.options.onOpenPlantumlSettings();
         }
+        },
     });
 };
 
@@ -75,8 +74,18 @@ export const plantumlRender = (
                 e.innerHTML = `<img src="${url}">`;
                 ensurePlantumlChrome(e, url, vditor);
             } catch (error) {
-                e.className = "vditor-reset--error";
-                e.innerHTML = `plantuml render error: <br>${error}`;
+                e.classList.add("vditor-reset--error");
+                renderActionableEmptyState(e, {
+                    title: window.VditorI18n?.actionablePlantumlRenderFailed || "PlantUML render failed",
+                    body: error instanceof Error ? error.message : String(error),
+                    actionLabel: window.VditorI18n?.actionableRetry || "Retry",
+                    onAction: () => {
+                        const root = vditor?.[vditor.currentMode].element || e.parentElement;
+                        if (root) {
+                            plantumlRender(root, cdn, vditor);
+                        }
+                    },
+                });
             }
         });
     });

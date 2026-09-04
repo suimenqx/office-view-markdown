@@ -23,6 +23,7 @@ import { saveCacheFocus } from "./cacheFocus";
 import { clearActiveHeadingMarker } from "./updateActiveHeadingMarker";
 import { handleAutoSymbolPair } from "./autoSymbol";
 import { handleVscodeShortcut } from "./vscodeShortcut";
+import { renderActionableEmptyState } from "../ui/actionableEmptyState";
 import {
     EDITOR_FONT_SIZE_DEFAULT,
     EDITOR_FONT_SIZE_KEY,
@@ -40,7 +41,31 @@ const markImageLoading = (img: HTMLImageElement) => {
     img.setAttribute("data-loading", "");
     const clear = () => img.removeAttribute("data-loading");
     img.addEventListener("load", clear, { once: true });
-    img.addEventListener("error", clear, { once: true });
+    img.addEventListener("error", () => {
+        clear();
+        const host = document.createElement("span");
+        host.className = "vditor-image-error-state";
+        host.setAttribute("data-vditor-generated", "true");
+        img.insertAdjacentElement("afterend", host);
+        img.setAttribute("data-vditor-image-error", "true");
+        img.style.display = "none";
+        renderActionableEmptyState(host, {
+            title: window.VditorI18n?.actionableImageLoadFailed || "Image failed to load",
+            body: window.VditorI18n?.actionableImageLoadFailedBody || "Check the image path and try again.",
+            actionLabel: window.VditorI18n?.actionableRetry || "Retry",
+            onAction: () => {
+                host.remove();
+                img.removeAttribute("data-vditor-image-error");
+                img.style.removeProperty("display");
+                const source = img.getAttribute("src");
+                if (source) {
+                    img.removeAttribute("src");
+                    img.setAttribute("src", source);
+                    markImageLoading(img);
+                }
+            },
+        });
+    }, { once: true });
 };
 
 const parsePxValue = (value: string): number | undefined => {

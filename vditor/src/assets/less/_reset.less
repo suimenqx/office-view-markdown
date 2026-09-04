@@ -28,6 +28,51 @@
       line-height: 16px;
     }
 
+    .vditor-actionable-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      max-width: 36rem;
+      padding: 12px 14px;
+      border: 1px dashed color-mix(in srgb, var(--border-color, #d0d7de) 85%, transparent);
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--panel-background-color, var(--bg-color, #fff)) 92%, var(--second-bg-color, #f6f8fa));
+      color: var(--front-color, var(--textarea-text-color, inherit));
+      line-height: 1.45;
+    }
+
+    .vditor-actionable-empty-state__title {
+      font-weight: 600;
+    }
+
+    .vditor-actionable-empty-state__body {
+      color: var(--second-color, var(--descriptionForeground, inherit));
+      font-size: 0.95em;
+      overflow-wrap: anywhere;
+    }
+
+    .vditor-actionable-empty-state__action {
+      min-height: 28px;
+      padding: 4px 10px;
+      border: 1px solid color-mix(in srgb, var(--link-color, var(--vscode-textLink-foreground, #0969da)) 50%, var(--border-color, #d0d7de));
+      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--link-color, var(--vscode-textLink-foreground, #0969da)) 10%, var(--panel-background-color, var(--bg-color, #fff)));
+      color: var(--link-color, var(--vscode-textLink-foreground, #0969da));
+      cursor: pointer;
+      font: inherit;
+      transition: var(--transition);
+
+      &:hover {
+        background: color-mix(in srgb, var(--link-color, var(--vscode-textLink-foreground, #0969da)) 18%, var(--panel-background-color, var(--bg-color, #fff)));
+      }
+    }
+
+    .vditor-actionable-empty-state__action:disabled {
+      cursor: default;
+      opacity: 0.6;
+    }
+
     color: var(--textarea-text-color, #24292e);
     font-variant-ligatures: no-common-ligatures;
     font-family: var(--editor-font-family, @font-family-base);

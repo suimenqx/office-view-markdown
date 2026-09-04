@@ -28,6 +28,7 @@ import { mathRender } from "../markdown/mathRender";
 import { mermaidRender } from "../markdown/mermaidRender";
 import { plantumlRender } from "../markdown/plantumlRender";
 import { stripGitHubAlertPresentation } from "../markdown/githubAlerts";
+import { removeActionableEmptyState } from "../ui/actionableEmptyState";
 import {
     deactivateInlineMathEditorsInScope,
     flushInlineMathToSyncCode,
@@ -2187,6 +2188,11 @@ export const buildEditorHtmlForMarkdown = (vditor: IVditor) => {
         container.classList.remove("vditor-math-inline--editing");
         container.removeAttribute("contenteditable");
     }
+    removeActionableEmptyState(clone);
+    clone.querySelectorAll("img[data-vditor-image-error='true']").forEach((img) => {
+        img.removeAttribute("data-vditor-image-error");
+        (img as HTMLElement).style.removeProperty("display");
+    });
     for (const block of clone.querySelectorAll("[data-type='code-block'], [data-type='math-block']")) {
         block.querySelectorAll(".vditor-wysiwyg__preview, .vditor-ir__preview").forEach((preview) => {
             preview.remove();

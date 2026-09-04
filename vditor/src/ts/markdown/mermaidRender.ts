@@ -5,6 +5,7 @@ import {resolveMermaidTheme} from "../ui/setMermaidTheme";
 import {mermaidRenderAdapter} from "./adapterRender";
 import {ensureMermaidChrome} from "./mermaidChrome";
 import {buildMermaidInitConfig, findVditorRoot} from "./mermaidTheme";
+import {renderActionableEmptyState, removeActionableEmptyState} from "../ui/actionableEmptyState";
 
 declare const mermaid: {
     initialize(options: unknown): void,
@@ -57,6 +58,7 @@ const clearMermaidElement = (item: HTMLElement) => {
     item.removeAttribute(MERMAID_PROCESSED_ATTR);
     item.removeAttribute("id");
     item.classList.remove("vditor-reset--error");
+    removeActionableEmptyState(item);
     const source = item.getAttribute(MERMAID_SOURCE_ATTR);
     if (source) {
         item.textContent = source;
@@ -65,7 +67,7 @@ const clearMermaidElement = (item: HTMLElement) => {
     item.innerHTML = "";
 };
 
-const renderSingleMermaid = async (item: HTMLElement, code: string, index: number) => {
+const renderSingleMermaid = async (item: HTMLElement, code: string, index: number, onRetry?: () => void) => {
     clearMermaidElement(item);
     const renderId = `vditor-mermaid-${++renderCounter}-${Date.now()}-${index}`;
     try {
@@ -75,8 +77,13 @@ const renderSingleMermaid = async (item: HTMLElement, code: string, index: numbe
         item.setAttribute(MERMAID_PROCESSED_ATTR, "true");
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        item.className = "language-mermaid vditor-reset--error";
-        item.textContent = `mermaid render error: ${message}`;
+        item.classList.add("vditor-reset--error");
+        renderActionableEmptyState(item, {
+            title: window.VditorI18n?.actionableMermaidRenderFailed || "Mermaid render failed",
+            body: message,
+            actionLabel: window.VditorI18n?.actionableRetry || "Retry",
+            onAction: onRetry,
+        });
         item.setAttribute(MERMAID_PROCESSED_ATTR, "true");
     }
 };
@@ -106,7 +113,14 @@ const renderMermaidElements = async (
             continue;
         }
         storeMermaidSource(item, code);
-        await renderSingleMermaid(item, code, i);
+        const retry = () => {
+            void renderSingleMermaid(item, code, i, retry).then(() => {
+                if (vditor) {
+                    ensureMermaidChrome(vditor, item);
+                }
+            });
+        };
+        await renderSingleMermaid(item, code, i, retry);
         if (vditor) {
             ensureMermaidChrome(vditor, item);
         }
