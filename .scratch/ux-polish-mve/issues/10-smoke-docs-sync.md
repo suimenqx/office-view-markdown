@@ -18,3 +18,7 @@
 - Updated host smoke and PlantUML integration assertions to the shared Actionable Empty State contract and excluded generated `test-results` from VSIX packaging.
 - Verified `node test/smoke/run.js` (9 passing), installed VSIX PlantUML mock smoke (4 passing), `node test/integration/plantumlProbe.integration.js`, `npm run build`, and `npx --yes @vscode/vsce package --no-dependencies` (version remains 0.1.0).
 - The repository's `npm run package` script still requires a globally installed `vsce`; the equivalent `npx @vscode/vsce` package command succeeded in this environment.
+
+## Comments
+
+- Code review (04–10 range): see `.scratch/ux-polish-mve/reviews/04-10-summary.md` (Standards + Spec).

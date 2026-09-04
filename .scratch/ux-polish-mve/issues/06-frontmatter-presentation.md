@@ -12,3 +12,7 @@
 - [x] Switching modes does not corrupt frontmatter source
 
 **Comments:** Added the `office-view-markdown.frontMatterPresentation` setting with a `table` default and a `chips` mode that lays out short YAML properties as compact Codicon-backed chips while retaining the existing Edit YAML path. The presentation is applied after WYSIWYG/IR renders and mode switches, and only changes DOM classes; YAML source remains synchronized through the existing hidden source node. Verified with `node test/unit/frontMatterPresentation.test.js` and `npm run build`.
+
+## Comments
+
+- Code review (04–10 range): see `.scratch/ux-polish-mve/reviews/04-10-summary.md` (Standards + Spec).

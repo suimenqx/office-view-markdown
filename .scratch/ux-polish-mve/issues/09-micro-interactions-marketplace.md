@@ -12,3 +12,7 @@
 - [x] New/updated settings remain documented in Settings UI
 
 **Comments:** Added subtle Reading Surface link hover underlines, token-backed inline-code borders, and thin token-colored rules. Marketplace metadata now includes the dark `galleryBanner` and every contributed command uses the `Office View Markdown` category. New settings retain `markdownDescription` and explicit ordering. Verified with `node test/unit/marketplacePolish.test.js` and `npm run build`.
+
+## Comments
+
+- Code review (04–10 range): see `.scratch/ux-polish-mve/reviews/04-10-summary.md` (Standards + Spec).

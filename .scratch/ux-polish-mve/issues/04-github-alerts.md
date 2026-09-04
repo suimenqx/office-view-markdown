@@ -12,3 +12,7 @@
 - [x] Pure-function or equivalent seam maps marker → class and is unit-tested
 
 **Comments:** Added presentation-only GitHub Alert class mapping for NOTE, TIP, WARNING, CAUTION, and IMPORTANT markers, including the existing default Obsidian `data-type="callout"` render path. Semantic info/success/warning/error styling is applied without adding a Callout type or toolbar. The export clone removes only generated callout icons so marker/title text remains source-safe; ordinary blockquotes receive no alert class. Verified with `node test/unit/githubAlerts.test.js` and `npm run build`.
+
+## Comments
+
+- Code review (04–10 range): see `.scratch/ux-polish-mve/reviews/04-10-summary.md` (Standards + Spec).

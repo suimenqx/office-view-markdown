@@ -11,3 +11,7 @@
 - [x] Existing chrome capabilities (language search / theme / expand where present) still work
 
 **Comments:** Extended the existing code-block chrome to normalize common language IDs to readable labels such as TypeScript, Shell, JSX, and YAML. Copy now visibly changes its label and icon to Copied/check for 500ms before reverting, while preserving existing language search, theme, expand, and copy behavior. Verified with `node test/unit/codeBlockLanguageLabel.test.js` and `npm run build`.
+
+## Comments
+
+- Code review (04–10 range): see `.scratch/ux-polish-mve/reviews/04-10-summary.md` (Standards + Spec).
