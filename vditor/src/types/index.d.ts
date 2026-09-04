@@ -548,6 +548,8 @@ interface IOptions {
     plantumlServer?: string;
     /** Reading Surface 编辑器字号，未设置时跟随 VS Code editor.fontSize */
     editorFontSize?: number;
+    /** Frontmatter Presentation: editable table by default, or compact chips for short values */
+    frontMatterPresentation?: "table" | "chips";
     /** 图标。默认值: 'ant' */
     icon?: "ant" | "material";
     /** @link https://ld246.com/article/1549638745630#options-upload */
@@ -581,6 +583,7 @@ interface IOptions {
 
     /** Reading Surface 编辑器字号修改后触发 */
     onEditorFontSizeChange?(value: number | undefined): void;
+
 
     /** 打开 PlantUML Server Base URL 设置 */
     onOpenPlantumlSettings?(): void;

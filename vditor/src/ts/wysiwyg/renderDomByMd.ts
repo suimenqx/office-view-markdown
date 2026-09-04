@@ -4,6 +4,7 @@ import {processCodeRender} from "../util/processCode";
 import {renderTocNow} from "../util/toc";
 import {afterRenderEvent} from "./afterRenderEvent";
 import {markGitHubAlertSourceTitles} from "../markdown/githubAlerts";
+import {applyFrontMatterPresentation, resolveFrontMatterPresentation} from "../codeBlock/frontMatterPresentation";
 
 export const BOUNDARY_SENTINEL_CLASS = "vditor-editor-boundary";
 
@@ -25,6 +26,7 @@ export const renderDomByMd = (vditor: IVditor, md: string, options = {
     log("Md2VditorDOM", html, "result", vditor.options.debugger);
     editorElement.innerHTML = html;
     markGitHubAlertSourceTitles(editorElement, md);
+    applyFrontMatterPresentation(editorElement, resolveFrontMatterPresentation(vditor.options.frontMatterPresentation));
 
     const isNearViewport = (element: HTMLElement) => {
         const rect = element.getBoundingClientRect();

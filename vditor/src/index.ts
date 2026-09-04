@@ -61,6 +61,11 @@ import { WYSIWYG } from "./ts/wysiwyg/index";
 import { input } from "./ts/wysiwyg/input";
 import { ensureEditorBoundaryParagraphs, renderDomByMd } from "./ts/wysiwyg/renderDomByMd";
 import { markGitHubAlertSourceTitles } from "./ts/markdown/githubAlerts";
+import {
+    applyFrontMatterPresentation,
+    FrontMatterPresentation,
+    resolveFrontMatterPresentation,
+} from "./ts/codeBlock/frontMatterPresentation";
 import { unbindTypewriterMode } from "./ts/ui/typewriterMode";
 
 class Vditor {
@@ -372,9 +377,21 @@ class Vditor {
         } else {
             document.execCommand("insertText", false, markdown);
         }
+        applyFrontMatterPresentation(
+            vditor[vditor.currentMode].element,
+            resolveFrontMatterPresentation(vditor.options.frontMatterPresentation),
+        );
         markOutlineEditing(vditor);
         vditor.outline.render(vditor);
         recordHistoryChange(vditor);
+    }
+
+    /** Set the Frontmatter Presentation without changing the editable YAML source. */
+    public setFrontMatterPresentation(presentation: FrontMatterPresentation) {
+        const resolved = resolveFrontMatterPresentation(presentation);
+        this.vditor.options.frontMatterPresentation = resolved;
+        applyFrontMatterPresentation(this.vditor.wysiwyg.element, resolved);
+        applyFrontMatterPresentation(this.vditor.ir.element, resolved);
     }
 
     /** 设置编辑器内容 */
@@ -388,6 +405,10 @@ class Vditor {
         } else {
             this.vditor.ir.element.innerHTML = this.vditor.lute.Md2VditorIRDOM(markdown);
             markGitHubAlertSourceTitles(this.vditor.ir.element, markdown);
+            applyFrontMatterPresentation(
+                this.vditor.ir.element,
+                resolveFrontMatterPresentation(this.vditor.options.frontMatterPresentation),
+            );
             this.vditor.ir.element
                 .querySelectorAll(".vditor-ir__preview[data-render='2']")
                 .forEach((item: HTMLElement) => {

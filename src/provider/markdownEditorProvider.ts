@@ -33,6 +33,7 @@ const MARKDOWN_SYNC_CONFIG_KEYS = [
     'editorTheme',
     'codeMirrorTheme',
     'mermaidTheme',
+    'frontMatterPresentation',
 ] as const;
 
 type MarkdownSyncConfigKey = typeof MARKDOWN_SYNC_CONFIG_KEYS[number] | 'editorFontSize';
@@ -269,6 +270,10 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
                 ? fontSize
                 : undefined;
             void Global.updateConfig("editorFontSize", value);
+        }).on("frontMatterPresentation", (presentation: unknown) => {
+            if (presentation === "table" || presentation === "chips") {
+                void Global.updateConfig("frontMatterPresentation", presentation);
+            }
         }).on("img", async (payload) => {
             const imgData: string = typeof payload === 'string' ? payload : payload.data;
             const ext: string = typeof payload === 'string' ? 'png' : (payload.ext || 'png');
@@ -339,6 +344,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
             editorTheme: configuration.get<string>("editorTheme", "Auto"),
             codeMirrorTheme: configuration.get<string>("codeMirrorTheme", "Auto"),
             mermaidTheme: configuration.get<string>("mermaidTheme", "Auto"),
+            frontMatterPresentation: configuration.get<string>("frontMatterPresentation", "table"),
             plantumlServer: configuration.get<string>("plantuml.server", "") ?? "",
             editorFontSize: getEffectiveEditorFontSize(configuration),
             markdown: {

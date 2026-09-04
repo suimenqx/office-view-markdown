@@ -6,7 +6,7 @@ handler.on("open", async (md) => {
   const { content, rootPath, workspaceBaseUrl, documentCacheId, pendingFragment, shouldRestoreFocus, config } = md;
   const {
     language, isWeb, isDev, markdown,
-    editMode, editorTheme, codeMirrorTheme, mermaidTheme, plantumlServer, editorFontSize
+    editMode, editorTheme, codeMirrorTheme, mermaidTheme, plantumlServer, editorFontSize, frontMatterPresentation
   } = config;
   if (isWeb) {
     document.body.classList.add('is-web')
@@ -31,6 +31,7 @@ handler.on("open", async (md) => {
     mermaidTheme,
     plantumlServer: plantumlServer || '',
     editorFontSize,
+    frontMatterPresentation: frontMatterPresentation === 'chips' ? 'chips' : 'table',
     lang: mapVscodeLanguageToVditorLang(language),
     tab: '\t',
     toolbar: await getToolbar(() => {
@@ -142,6 +143,9 @@ handler.on("open", async (md) => {
         }
         if (update.editorFontSize !== undefined) {
           editor.setEditorFontSize(update.editorFontSize);
+        }
+        if (update.frontMatterPresentation !== undefined) {
+          editor.setFrontMatterPresentation(update.frontMatterPresentation);
         }
       });
       handler.on("update", content => {

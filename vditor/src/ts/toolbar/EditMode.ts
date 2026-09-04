@@ -18,6 +18,7 @@ import {renderCodeBlocks} from "../codeBlock/codeMirrorManager";
 import {MenuItem} from "./MenuItem";
 import {refreshSettingsToolbarPanel} from "../ui/settingsPanel";
 import {markGitHubAlertSourceTitles} from "../markdown/githubAlerts";
+import {applyFrontMatterPresentation, resolveFrontMatterPresentation} from "../codeBlock/frontMatterPresentation";
 import {
     disableToolbar,
     enableToolbar,
@@ -78,6 +79,10 @@ export const setEditMode = (
         log("Md2VditorIRDOM", irHTML, "result", vditor.options.debugger);
         vditor.ir.element.innerHTML = irHTML;
         markGitHubAlertSourceTitles(vditor.ir.element, markdownText);
+        applyFrontMatterPresentation(
+            vditor.ir.element,
+            resolveFrontMatterPresentation(vditor.options.frontMatterPresentation),
+        );
         processAfterRender(vditor, {
             enableAddUndoStack: true,
             enableHint: false,

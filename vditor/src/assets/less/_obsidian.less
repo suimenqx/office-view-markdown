@@ -621,16 +621,18 @@
     flex-shrink: 0;
     width: 14px;
     height: 14px;
+    font-family: "codicon";
+    font-size: 14px;
     line-height: 1;
     opacity: 0.72;
 
-    &[data-icon="tag"]::before { content: "#"; }
-    &[data-icon="alias"]::before { content: "⛓"; }
-    &[data-icon="date"]::before { content: "📅"; }
-    &[data-icon="toggle"]::before { content: "◉"; }
-    &[data-icon="number"]::before { content: "#"; }
-    &[data-icon="list"]::before { content: "≡"; }
-    &[data-icon="text"]::before { content: "T"; }
+    &[data-icon="tag"]::before { content: "\ea66"; }
+    &[data-icon="alias"]::before { content: "\eb15"; }
+    &[data-icon="date"]::before { content: "\eab0"; }
+    &[data-icon="toggle"]::before { content: "\ea8f"; }
+    &[data-icon="number"]::before { content: "\ea90"; }
+    &[data-icon="list"]::before { content: "\eb17"; }
+    &[data-icon="text"]::before { content: "\eb8d"; }
   }
 
   .vditor-properties__key-label {
@@ -686,5 +688,66 @@
 
   .vditor-properties__source-sync {
     display: none !important;
+  }
+
+  .vditor-front-matter--chips {
+    .vditor-properties__table {
+      display: flex;
+      flex-flow: row wrap;
+      gap: 6px;
+      padding: 8px;
+    }
+
+    .vditor-properties__row {
+      display: inline-flex;
+      grid-template-columns: none;
+      align-items: center;
+      width: 100%;
+      min-width: 0;
+      padding: 6px 8px;
+      border: 1px solid color-mix(in srgb, var(--border-color, #d0d7de) 70%, transparent);
+      border-radius: var(--radius-sm, 6px);
+      background: color-mix(in srgb, var(--panel-background-color, #fff) 92%, var(--second-bg-color, #f6f8fa));
+    }
+
+    .vditor-properties__row--chip {
+      width: auto;
+      max-width: 100%;
+      gap: 6px;
+      border-radius: 999px;
+      padding-block: 4px;
+    }
+
+    .vditor-properties__row--chip .vditor-properties__key {
+      flex-shrink: 0;
+      gap: 4px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .vditor-properties__row--chip .vditor-properties__value {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.82rem;
+    }
+
+    .vditor-properties__row--chip .vditor-properties__value--tags,
+    .vditor-properties__row--chip .vditor-properties__value--aliases {
+      display: inline-flex;
+      flex-wrap: nowrap;
+      gap: 4px;
+    }
+
+    .vditor-properties__row--chip .vditor-properties__list {
+      display: inline-flex;
+      gap: 4px;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .vditor-properties__row--chip .vditor-properties__list li:not(:first-child) {
+      display: none;
+    }
   }
 }

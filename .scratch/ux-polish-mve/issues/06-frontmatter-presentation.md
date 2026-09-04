@@ -4,9 +4,11 @@
 
 **Blocked by:** 01 Design Tokens foundation
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Setting supports `table | chips` with default `table`
-- [ ] Chips mode uses Codicon (no emoji icons)
-- [ ] Table/Properties editing path remains available and default
-- [ ] Switching modes does not corrupt frontmatter source
+- [x] Setting supports `table | chips` with default `table`
+- [x] Chips mode uses Codicon (no emoji icons)
+- [x] Table/Properties editing path remains available and default
+- [x] Switching modes does not corrupt frontmatter source
+
+**Comments:** Added the `office-view-markdown.frontMatterPresentation` setting with a `table` default and a `chips` mode that lays out short YAML properties as compact Codicon-backed chips while retaining the existing Edit YAML path. The presentation is applied after WYSIWYG/IR renders and mode switches, and only changes DOM classes; YAML source remains synchronized through the existing hidden source node. Verified with `node test/unit/frontMatterPresentation.test.js` and `npm run build`.
