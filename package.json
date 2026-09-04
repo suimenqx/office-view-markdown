@@ -28,7 +28,8 @@
   "activationEvents": [
     "onCustomEditor:office-view-markdown.markdownViewer",
     "onCommand:office-view-markdown.switch",
-    "onCommand:office-view-markdown.paste"
+    "onCommand:office-view-markdown.paste",
+    "onCommand:office-view-markdown.plantuml.testServer"
   ],
   "main": "./out/extension.js",
   "browser": "./out/extension.web.js",
@@ -43,6 +44,11 @@
         "command": "office-view-markdown.paste",
         "title": "Enhance Paste in Markdown",
         "enablement": "!office-view-markdown.extensionHost.web"
+      },
+      {
+        "command": "office-view-markdown.plantuml.testServer",
+        "title": "Test PlantUML Server Connectivity",
+        "category": "Office View Markdown"
       }
     ],
     "keybindings": [
@@ -94,91 +100,106 @@
         ]
       }
     ],
-    "configuration": {
-      "title": "Markdown",
-      "properties": {
-        "office-view-markdown.editorTheme": {
-          "type": "string",
-          "enum": [
-            "Auto",
-            "Light",
-            "Solarized",
-            "Warm Light",
-            "Dim Light",
-            "One Dark",
-            "Github Dark",
-            "Nord",
-            "Monokai",
-            "Dracula"
-          ],
-          "default": "Auto",
-          "markdownDescription": "The theme for the Markdown editor."
-        },
-        "office-view-markdown.codeMirrorTheme": {
-          "type": "string",
-          "enum": [
-            "Auto",
-            "Github",
-            "Solarized Light",
-            "Material Light",
-            "Quiet Light",
-            "One Light",
-            "Dracula",
-            "Monokai",
-            "One Dark",
-            "Solarized Dark",
-            "Material Dark"
-          ],
-          "default": "Auto",
-          "markdownDescription": "CodeMirror syntax theme for code blocks in the Markdown editor."
-        },
-        "office-view-markdown.mermaidTheme": {
-          "type": "string",
-          "enum": [
-            "Auto",
-            "Light",
-            "Forest",
-            "Ocean",
-            "Sunset",
-            "Dark",
-            "Dracula",
-            "Monokai",
-            "Nord"
-          ],
-          "default": "Auto",
-          "markdownDescription": "Mermaid diagram theme in the Markdown editor. Auto follows the editor theme."
-        },
-        "office-view-markdown.editMode": {
-          "type": "string",
-          "enum": [
-            "wysiwyg",
-            "ir"
-          ],
-          "default": "wysiwyg",
-          "markdownDescription": "Default edit mode for the Markdown editor."
-        },
-        "office-view-markdown.restoreViewState": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "Restore caret focus when opening a Markdown file. Scroll position is always restored."
-        },
-        "office-view-markdown.workspacePathAsImageBasePath": {
-          "type": "boolean",
-          "default": false,
-          "description": "Use the workspace path as the base path for images embedded in Markdown."
-        },
-        "office-view-markdown.pasteImageToWorkspacePath": {
-          "type": "boolean",
-          "default": false,
-          "description": "Paste Markdown images into the workspace path and insert image links with a leading slash."
-        },
-        "office-view-markdown.pasterImgPath": {
-          "type": "string",
-          "default": "image/${fileName}/${now}.${ext}",
-          "description": "Markdown paste image path. Variables: workspaceDir, fileName, now, date (YYYYMMDD), uuid, and ext."
+    "configuration": [
+      {
+        "title": "Markdown",
+        "order": 1,
+        "properties": {
+          "office-view-markdown.editorTheme": {
+            "type": "string",
+            "enum": [
+              "Auto",
+              "Light",
+              "Solarized",
+              "Warm Light",
+              "Dim Light",
+              "One Dark",
+              "Github Dark",
+              "Nord",
+              "Monokai",
+              "Dracula"
+            ],
+            "default": "Auto",
+            "markdownDescription": "The theme for the Markdown editor."
+          },
+          "office-view-markdown.codeMirrorTheme": {
+            "type": "string",
+            "enum": [
+              "Auto",
+              "Github",
+              "Solarized Light",
+              "Material Light",
+              "Quiet Light",
+              "One Light",
+              "Dracula",
+              "Monokai",
+              "One Dark",
+              "Solarized Dark",
+              "Material Dark"
+            ],
+            "default": "Auto",
+            "markdownDescription": "CodeMirror syntax theme for code blocks in the Markdown editor."
+          },
+          "office-view-markdown.mermaidTheme": {
+            "type": "string",
+            "enum": [
+              "Auto",
+              "Light",
+              "Forest",
+              "Ocean",
+              "Sunset",
+              "Dark",
+              "Dracula",
+              "Monokai",
+              "Nord"
+            ],
+            "default": "Auto",
+            "markdownDescription": "Mermaid diagram theme in the Markdown editor. Auto follows the editor theme."
+          },
+          "office-view-markdown.editMode": {
+            "type": "string",
+            "enum": [
+              "wysiwyg",
+              "ir"
+            ],
+            "default": "wysiwyg",
+            "markdownDescription": "Default edit mode for the Markdown editor."
+          },
+          "office-view-markdown.restoreViewState": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "Restore caret focus when opening a Markdown file. Scroll position is always restored."
+          },
+          "office-view-markdown.workspacePathAsImageBasePath": {
+            "type": "boolean",
+            "default": false,
+            "description": "Use the workspace path as the base path for images embedded in Markdown."
+          },
+          "office-view-markdown.pasteImageToWorkspacePath": {
+            "type": "boolean",
+            "default": false,
+            "description": "Paste Markdown images into the workspace path and insert image links with a leading slash."
+          },
+          "office-view-markdown.pasterImgPath": {
+            "type": "string",
+            "default": "image/${fileName}/${now}.${ext}",
+            "description": "Markdown paste image path. Variables: workspaceDir, fileName, now, date (YYYYMMDD), uuid, and ext."
+          }
+        }
+      },
+      {
+        "title": "PlantUML",
+        "order": 2,
+        "properties": {
+          "office-view-markdown.plantuml.server": {
+            "type": "string",
+            "default": "",
+            "order": 1,
+            "markdownDescription": "PlantUML Server Base URL (for example `https://plantuml.example.com` or `https://host/plantuml`). When empty, diagram source is not sent anywhere and the preview shows a placeholder with a link to open this setting. Authentication is not supported."
+          }
         }
       }
-    }
+    ]
   },
   "scripts": {
     "dev": "vite --mode=development",

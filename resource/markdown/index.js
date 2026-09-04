@@ -6,7 +6,7 @@ handler.on("open", async (md) => {
   const { content, rootPath, workspaceBaseUrl, documentCacheId, pendingFragment, shouldRestoreFocus, config } = md;
   const {
     language, isWeb, isDev, markdown,
-    editMode, editorTheme, codeMirrorTheme, mermaidTheme
+    editMode, editorTheme, codeMirrorTheme, mermaidTheme, plantumlServer
   } = config;
   if (isWeb) {
     document.body.classList.add('is-web')
@@ -29,6 +29,7 @@ handler.on("open", async (md) => {
     editorTheme,
     codeMirrorTheme,
     mermaidTheme,
+    plantumlServer: plantumlServer || '',
     lang: mapVscodeLanguageToVditorLang(language),
     tab: '\t',
     toolbar: await getToolbar(() => {
@@ -70,6 +71,9 @@ handler.on("open", async (md) => {
     },
     changeMermaidTheme(theme) {
       handler.emit('mermaidTheme', theme)
+    },
+    onOpenPlantumlSettings() {
+      handler.emit('openPlantumlSettings')
     },
     changeEditMode(mode) {
       handler.emit('editMode', mode)
@@ -125,6 +129,9 @@ handler.on("open", async (md) => {
         }
         if (update.mermaidTheme !== undefined) {
           editor.setMermaidTheme(update.mermaidTheme);
+        }
+        if (update.plantumlServer !== undefined) {
+          editor.setPlantumlServer(update.plantumlServer || '');
         }
         if (update.editMode !== undefined) {
           editor.switchEditMode(update.editMode);

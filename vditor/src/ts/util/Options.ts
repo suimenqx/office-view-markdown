@@ -94,6 +94,7 @@ export class Options {
         lastLightEditorTheme: "Light",
         lastDarkEditorTheme: "One Dark",
         mermaidTheme: "Auto",
+        plantumlServer: "",
     };
 
     constructor(options: IOptions) {

@@ -147,6 +147,12 @@ class Vditor {
         applyMermaidTheme(this.vditor, mermaidTheme, false);
     }
 
+    /** 设置 PlantUML Server Base URL 并重新渲染 PlantUML 块 */
+    public setPlantumlServer(plantumlServer: string) {
+        this.vditor.options.plantumlServer = plantumlServer ?? "";
+        plantumlRender(this.vditor.element, this.vditor.options.cdn, this.vditor);
+    }
+
     /** 切换编辑模式（不触发 changeEditMode 回调） */
     public switchEditMode(mode: "wysiwyg" | "ir") {
         if (this.vditor.currentMode === mode) {

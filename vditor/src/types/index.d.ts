@@ -544,6 +544,8 @@ interface IOptions {
     codeMirrorTheme?: ICodeMirrorTheme | string;
     /** Mermaid 图表主题。默认值: 'Auto' */
     mermaidTheme?: IMermaidTheme | string;
+    /** PlantUML Server Base URL。空字符串表示未配置，不发起远程渲染。默认值: '' */
+    plantumlServer?: string;
     /** 图标。默认值: 'ant' */
     icon?: "ant" | "material";
     /** @link https://ld246.com/article/1549638745630#options-upload */
@@ -574,6 +576,9 @@ interface IOptions {
 
     /** Mermaid 主题修改后触发 */
     changeMermaidTheme?(value: string): void;
+
+    /** 打开 PlantUML Server Base URL 设置 */
+    onOpenPlantumlSettings?(): void;
 
     /** 编辑模式修改后触发 */
     changeEditMode?(value: string): void;

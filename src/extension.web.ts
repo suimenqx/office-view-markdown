@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { Global } from './common/global';
 import { MarkdownEditorProvider } from './provider/markdownEditorProvider';
 import { MarkdownService } from './service/markdownService';
+import { registerPlantumlServerCommand } from './service/plantumlServerService';
 
 export async function activate(context: vscode.ExtensionContext) {
 	await Global.init(context);
@@ -12,6 +13,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const viewOption = { webviewOptions: { retainContextWhenHidden: true } };
 	const markdownService = new MarkdownService(context);
 	const markdownEditorProvider = new MarkdownEditorProvider(context, { isWeb: true });
+	registerPlantumlServerCommand(context);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('office-view-markdown.switch', (uri) => { markdownService.switchEditor(uri); }),

@@ -16,6 +16,7 @@ import {
     unregisterMarkdownWebview,
 } from '@/service/markdown/blockScroll';
 import { ViewerSettingsService } from '@/service/viewerSettingsService';
+import { openPlantumlServerSettings } from '@/service/plantumlServerService';
 import { parseWebviewResourceUri } from '@/common/webviewUri';
 
 export interface MarkdownEditorProviderOptions {
@@ -55,13 +56,17 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         context.subscriptions.push(
             vscode.workspace.onDidChangeConfiguration((event) => {
                 const config = vscode.workspace.getConfiguration('office-view-markdown');
-                const patch: Partial<Record<MarkdownSyncConfigKey, unknown>> = {};
+                const patch: Partial<Record<MarkdownSyncConfigKey | 'plantumlServer', unknown>> = {};
                 let changed = false;
                 for (const key of MARKDOWN_SYNC_CONFIG_KEYS) {
                     if (event.affectsConfiguration(`office-view-markdown.${key}`)) {
                         patch[key] = config.get(key);
                         changed = true;
                     }
+                }
+                if (event.affectsConfiguration('office-view-markdown.plantuml.server')) {
+                    patch.plantumlServer = config.get<string>('plantuml.server', '') ?? '';
+                    changed = true;
                 }
                 if (changed) {
                     broadcastToMarkdownWebviews('markdownConfig', patch);
@@ -284,6 +289,8 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
             if (url) {
                 vscode.env.openExternal(vscode.Uri.parse(url));
             }
+        }).on('openPlantumlSettings', () => {
+            void openPlantumlServerSettings();
         }).on('syncViewerSettings', async (settings) => {
             if (await ViewerSettingsService.exists()) {
                 await ViewerSettingsService.writeFromVditor(settings);
@@ -308,6 +315,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
             editorTheme: configuration.get<string>("editorTheme", "Auto"),
             codeMirrorTheme: configuration.get<string>("codeMirrorTheme", "Auto"),
             mermaidTheme: configuration.get<string>("mermaidTheme", "Auto"),
+            plantumlServer: configuration.get<string>("plantuml.server", "") ?? "",
             markdown: {
                 math: {
                     macros: markdownConfiguration.get<Record<string, string>>("math.macros", {}),

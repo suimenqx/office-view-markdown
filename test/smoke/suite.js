@@ -48,12 +48,23 @@ suite('office-view-markdown smoke', function () {
     const commands = (contributes.commands || []).map((c) => c.command);
     assert.ok(commands.includes('office-view-markdown.switch'), 'missing office-view-markdown.switch');
     assert.ok(commands.includes('office-view-markdown.paste'), 'missing office-view-markdown.paste');
+    assert.ok(commands.includes('office-view-markdown.plantuml.testServer'), 'missing plantuml.testServer');
     const editors = (contributes.customEditors || []).map((e) => e.viewType);
     assert.ok(editors.includes(viewType), `missing ${viewType}`);
+
+    const configSections = Array.isArray(contributes.configuration)
+      ? contributes.configuration
+      : [contributes.configuration].filter(Boolean);
+    const configKeys = configSections.flatMap((section) => Object.keys(section.properties || {}));
+    assert.ok(
+      configKeys.includes('office-view-markdown.plantuml.server'),
+      'missing office-view-markdown.plantuml.server setting',
+    );
 
     const all = await vscode.commands.getCommands(true);
     assert.ok(all.includes('office-view-markdown.switch'), 'switch command not registered');
     assert.ok(all.includes('office-view-markdown.paste'), 'paste command not registered');
+    assert.ok(all.includes('office-view-markdown.plantuml.testServer'), 'plantuml.testServer not registered');
   });
 
   test('can open markdown sample with custom editor (Vditor host)', async () => {

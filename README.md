@@ -30,6 +30,16 @@ Use **Switch Markdown Editor** from the editor title or press `Ctrl+Alt+E` (`⌃
 
 Additional editor shortcuts are documented in [shortcut.md](shortcut.md).
 
+
+## PlantUML
+
+PlantUML diagrams render through a user-configured **PlantUML Server Base URL**.
+
+1. Open Settings and set **Office View Markdown › PlantUML: Server** (`office-view-markdown.plantuml.server`), for example `https://plantuml.example.com` or `https://host/plantuml`.
+2. Optionally run **Office View Markdown: Test PlantUML Server Connectivity** (`office-view-markdown.plantuml.testServer`) to verify the server returns an image for a minimal diagram.
+
+If the setting is empty, diagram source is not sent anywhere. The preview shows a placeholder with a button to open this setting. Server authentication is not supported.
+
 ## Development
 
 Requirements:
