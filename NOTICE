@@ -1,10 +1,13 @@
 Office View Markdown is a Markdown-only product derived from vscode-office:
 https://github.com/cweijan/vscode-office
 
-The upstream vscode-office project was created by Weijan Chen (cweijan). This
-distribution retains the upstream MIT license and copyright notice:
+The upstream vscode-office project (Office Viewer) was created by Weijan Chen
+(cweijan). This distribution retains the upstream MIT license and copyright
+notice:
 
 Copyright (c) 2020 Weijan Chen
+
+Modifications for Office View Markdown: Copyright (c) 2026 suimenqx.
 
 See LICENSE for the complete MIT license terms. See README.md for additional
 project acknowledgments.
