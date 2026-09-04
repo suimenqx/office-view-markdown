@@ -50,6 +50,13 @@ export const UI_FONT_SIZE_DEFAULT = 13;
 export const EDITOR_FONT_SIZE_DEFAULT = 13;
 export const FONT_SIZE_MIN = 10;
 export const FONT_SIZE_MAX = 24;
+export const EDITOR_FONT_SIZE_MIN = 12;
+export const EDITOR_FONT_SIZE_MAX = 28;
+export const EDITOR_FONT_SIZE_STEP = 2;
+
+/** Clamp host-owned Editor Font Size changes at the Vditor settings seam. */
+export const stepEditorFontSize = (current: number, delta: number): number =>
+    Math.min(EDITOR_FONT_SIZE_MAX, Math.max(EDITOR_FONT_SIZE_MIN, current + delta));
 
 export const LINE_HEIGHT_KEY = "editorLineHeight";
 export const FONT_FAMILY_KEY = "editorFontFamily";
@@ -200,7 +207,7 @@ export const importViewerSettings = (data: ViewerSettingsExport | null | undefin
 };
 
 export const applyPageWidthSetting = (vditorElement: HTMLElement, pageWidth?: string) => {
-    if (pageWidth !== undefined && pageWidth !== PAGE_WIDTH_DEFAULT) {
+    if (pageWidth !== undefined) {
         vditorElement.style.setProperty("--vditor-page-width", pageWidth);
         vditorElement.setAttribute("data-page-width-mode", "fixed");
         return;

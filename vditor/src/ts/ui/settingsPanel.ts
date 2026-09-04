@@ -4,6 +4,9 @@ import {
     EDITOR_FONT_SIZE_KEY,
     UI_FONT_SIZE_DEFAULT,
     EDITOR_FONT_SIZE_DEFAULT,
+    EDITOR_FONT_SIZE_MIN,
+    EDITOR_FONT_SIZE_MAX,
+    EDITOR_FONT_SIZE_STEP,
     LINE_HEIGHT_KEY,
     LINE_HEIGHT_DEFAULT,
     FONT_FAMILY_KEY,
@@ -43,13 +46,13 @@ const buildEditModeSegmentedHTML = (currentMode: string) => {
     return html;
 };
 
-const buildFontSizeStepperHTML = (key: string, label: string, value: number) =>
+const buildFontSizeStepperHTML = (key: string, label: string, value: number, step: number) =>
     `<div class="${SETTINGS_PANEL_CLASS}__stepper-row" data-font-key="${key}">
         <span class="${SETTINGS_PANEL_CLASS}__stepper-label">${label}</span>
         <div class="${SETTINGS_PANEL_CLASS}__stepper">
-            <button type="button" class="${SETTINGS_PANEL_CLASS}__stepper-btn" data-step="-1">−</button>
+            <button type="button" class="${SETTINGS_PANEL_CLASS}__stepper-btn" data-step="-${step}">−</button>
             <span class="${SETTINGS_PANEL_CLASS}__stepper-value" data-font-value>${value}px</span>
-            <button type="button" class="${SETTINGS_PANEL_CLASS}__stepper-btn" data-step="1">+</button>
+            <button type="button" class="${SETTINGS_PANEL_CLASS}__stepper-btn" data-step="${step}">+</button>
         </div>
     </div>`;
 
@@ -101,13 +104,14 @@ const parsePxValue = (value: string): number | undefined => {
 };
 
 const resolveDisplayedFontSize = (vditor: IVditor, key: string, fallback: number): number => {
-    const stored = getGlobalLocalStorageSetting<number>(key);
-    if (stored !== undefined) {
-        return stored;
+    if (key === UI_FONT_SIZE_KEY) {
+        const stored = getGlobalLocalStorageSetting<number>(key);
+        if (stored !== undefined) return stored;
+        return parsePxValue(getComputedStyle(vditor.element).getPropertyValue("--ui-font-size")) ?? fallback;
     }
 
-    if (key === UI_FONT_SIZE_KEY) {
-        return parsePxValue(getComputedStyle(vditor.element).getPropertyValue("--ui-font-size")) ?? fallback;
+    if (vditor.options.editorFontSize !== undefined) {
+        return vditor.options.editorFontSize;
     }
 
     const content = vditor.element.querySelector<HTMLElement>(".vditor-ir")
@@ -153,8 +157,8 @@ export const buildSettingsPanelHTML = (vditor: IVditor) => {
         <div class="${SETTINGS_PANEL_CLASS}__section">
             <div class="${SETTINGS_PANEL_CLASS}__title">Font Size</div>
             <div class="${SETTINGS_PANEL_CLASS}__group">
-                ${buildFontSizeStepperHTML(UI_FONT_SIZE_KEY, "UI", uiSize)}
-                ${buildFontSizeStepperHTML(EDITOR_FONT_SIZE_KEY, "Editor", editorSize)}
+                ${buildFontSizeStepperHTML(UI_FONT_SIZE_KEY, "UI", uiSize, 1)}
+                ${buildFontSizeStepperHTML(EDITOR_FONT_SIZE_KEY, i18n.editorFontSize ?? "Editor Font Size", editorSize, EDITOR_FONT_SIZE_STEP)}
             </div>
         </div>
         <div class="${SETTINGS_PANEL_CLASS}__section">

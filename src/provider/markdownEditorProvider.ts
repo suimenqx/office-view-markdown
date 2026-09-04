@@ -18,6 +18,11 @@ import {
 import { ViewerSettingsService } from '@/service/viewerSettingsService';
 import { openPlantumlServerSettings } from '@/service/plantumlServerService';
 import { parseWebviewResourceUri } from '@/common/webviewUri';
+import {
+    EDITOR_FONT_SIZE_MAX,
+    EDITOR_FONT_SIZE_MIN,
+    resolveEditorFontSize,
+} from '@/common/editorFontSize';
 
 export interface MarkdownEditorProviderOptions {
     isWeb?: boolean;
@@ -30,7 +35,13 @@ const MARKDOWN_SYNC_CONFIG_KEYS = [
     'mermaidTheme',
 ] as const;
 
-type MarkdownSyncConfigKey = typeof MARKDOWN_SYNC_CONFIG_KEYS[number];
+type MarkdownSyncConfigKey = typeof MARKDOWN_SYNC_CONFIG_KEYS[number] | 'editorFontSize';
+
+const getEffectiveEditorFontSize = (configuration: vscode.WorkspaceConfiguration): number =>
+    resolveEditorFontSize(
+        configuration.get<number>('editorFontSize', 0),
+        vscode.workspace.getConfiguration('editor').get<number>('fontSize', 14),
+    );
 
 /**
  * Provides the Markdown custom editor view.
@@ -66,6 +77,11 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
                 }
                 if (event.affectsConfiguration('office-view-markdown.plantuml.server')) {
                     patch.plantumlServer = config.get<string>('plantuml.server', '') ?? '';
+                    changed = true;
+                }
+                if (event.affectsConfiguration('office-view-markdown.editorFontSize')
+                    || event.affectsConfiguration('editor.fontSize')) {
+                    patch.editorFontSize = getEffectiveEditorFontSize(config);
                     changed = true;
                 }
                 if (changed) {
@@ -245,6 +261,14 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
             if (mode === "wysiwyg" || mode === "ir") {
                 Global.updateConfig("editMode", mode);
             }
+        }).on("editorFontSize", (fontSize: unknown) => {
+            const value = typeof fontSize === "number"
+                && Number.isFinite(fontSize)
+                && fontSize >= EDITOR_FONT_SIZE_MIN
+                && fontSize <= EDITOR_FONT_SIZE_MAX
+                ? fontSize
+                : undefined;
+            void Global.updateConfig("editorFontSize", value);
         }).on("img", async (payload) => {
             const imgData: string = typeof payload === 'string' ? payload : payload.data;
             const ext: string = typeof payload === 'string' ? 'png' : (payload.ext || 'png');
@@ -316,6 +340,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
             codeMirrorTheme: configuration.get<string>("codeMirrorTheme", "Auto"),
             mermaidTheme: configuration.get<string>("mermaidTheme", "Auto"),
             plantumlServer: configuration.get<string>("plantuml.server", "") ?? "",
+            editorFontSize: getEffectiveEditorFontSize(configuration),
             markdown: {
                 math: {
                     macros: markdownConfiguration.get<Record<string, string>>("math.macros", {}),

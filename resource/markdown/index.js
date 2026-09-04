@@ -6,7 +6,7 @@ handler.on("open", async (md) => {
   const { content, rootPath, workspaceBaseUrl, documentCacheId, pendingFragment, shouldRestoreFocus, config } = md;
   const {
     language, isWeb, isDev, markdown,
-    editMode, editorTheme, codeMirrorTheme, mermaidTheme, plantumlServer
+    editMode, editorTheme, codeMirrorTheme, mermaidTheme, plantumlServer, editorFontSize
   } = config;
   if (isWeb) {
     document.body.classList.add('is-web')
@@ -30,6 +30,7 @@ handler.on("open", async (md) => {
     codeMirrorTheme,
     mermaidTheme,
     plantumlServer: plantumlServer || '',
+    editorFontSize,
     lang: mapVscodeLanguageToVditorLang(language),
     tab: '\t',
     toolbar: await getToolbar(() => {
@@ -80,6 +81,9 @@ handler.on("open", async (md) => {
     },
     onSettingsChange(settings) {
       handler.emit('syncViewerSettings', settings)
+    },
+    onEditorFontSizeChange(fontSize) {
+      handler.emit('editorFontSize', fontSize)
     },
     onEditSettings() {
       handler.emit('editViewerSettings', editor.exportViewerSettings())
@@ -135,6 +139,9 @@ handler.on("open", async (md) => {
         }
         if (update.editMode !== undefined) {
           editor.switchEditMode(update.editMode);
+        }
+        if (update.editorFontSize !== undefined) {
+          editor.setEditorFontSize(update.editorFontSize);
         }
       });
       handler.on("update", content => {

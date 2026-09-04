@@ -24,6 +24,9 @@ export const initUI = (vditor: IVditor) => {
   }
   setTheme(vditor);
   applyEditorSettings(vditor.element);
+  if (vditor.options.editorFontSize !== undefined) {
+    vditor.element.style.setProperty("--editor-font-size", `${vditor.options.editorFontSize}px`);
+  }
   macOptionSymbolEvent(vditor);
   setCodeTheme(resolveCodeMirrorTheme(vditor.options), vditor.element);
   if (typeof vditor.options.height === "number") {

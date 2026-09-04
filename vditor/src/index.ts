@@ -153,6 +153,17 @@ class Vditor {
         plantumlRender(this.vditor.element, this.vditor.options.cdn, this.vditor);
     }
 
+    /** Set the Reading Surface Editor Font Size without changing Markdown. */
+    public setEditorFontSize(editorFontSize: number | undefined) {
+        this.vditor.options.editorFontSize = editorFontSize;
+        if (editorFontSize === undefined) {
+            this.vditor.element.style.removeProperty("--editor-font-size");
+        } else {
+            this.vditor.element.style.setProperty("--editor-font-size", `${editorFontSize}px`);
+        }
+        refreshSettingsToolbarPanel(this.vditor);
+    }
+
     /** 切换编辑模式（不触发 changeEditMode 回调） */
     public switchEditMode(mode: "wysiwyg" | "ir") {
         if (this.vditor.currentMode === mode) {

@@ -30,6 +30,7 @@ import {
     FONT_SIZE_MIN,
     getGlobalLocalStorageSetting,
     setGlobalLocalStorageSetting,
+    stepEditorFontSize,
 } from "./globalLocalStorageSettings";
 
 const markImageLoading = (img: HTMLImageElement) => {
@@ -52,6 +53,9 @@ const parsePxValue = (value: string): number | undefined => {
 };
 
 const resolveCurrentEditorFontSize = (vditor: IVditor): number => {
+    if (vditor.options.editorFontSize !== undefined) {
+        return vditor.options.editorFontSize;
+    }
     const stored = getGlobalLocalStorageSetting<number>(EDITOR_FONT_SIZE_KEY);
     if (stored !== undefined) {
         return stored;
@@ -88,12 +92,19 @@ export const wheelZoomFontSizeEvent = (vditor: IVditor, editorElement: HTMLEleme
         }
 
         const current = resolveCurrentEditorFontSize(vditor);
-        const next = Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, current + direction));
+        const next = vditor.options.editorFontSize !== undefined
+            ? stepEditorFontSize(current, direction)
+            : Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, current + direction));
         if (next === current) {
             return;
         }
 
-        setGlobalLocalStorageSetting(EDITOR_FONT_SIZE_KEY, next);
+        if (vditor.options.editorFontSize !== undefined) {
+            vditor.options.editorFontSize = next;
+            vditor.options.onEditorFontSizeChange?.(next);
+        } else {
+            setGlobalLocalStorageSetting(EDITOR_FONT_SIZE_KEY, next);
+        }
         vditor.element.style.setProperty("--editor-font-size", `${next}px`);
         lastAppliedAt = now;
     }, { passive: false });

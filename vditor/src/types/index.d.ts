@@ -546,6 +546,8 @@ interface IOptions {
     mermaidTheme?: IMermaidTheme | string;
     /** PlantUML Server Base URL。空字符串表示未配置，不发起远程渲染。默认值: '' */
     plantumlServer?: string;
+    /** Reading Surface 编辑器字号，未设置时跟随 VS Code editor.fontSize */
+    editorFontSize?: number;
     /** 图标。默认值: 'ant' */
     icon?: "ant" | "material";
     /** @link https://ld246.com/article/1549638745630#options-upload */
@@ -576,6 +578,9 @@ interface IOptions {
 
     /** Mermaid 主题修改后触发 */
     changeMermaidTheme?(value: string): void;
+
+    /** Reading Surface 编辑器字号修改后触发 */
+    onEditorFontSizeChange?(value: number | undefined): void;
 
     /** 打开 PlantUML Server Base URL 设置 */
     onOpenPlantumlSettings?(): void;

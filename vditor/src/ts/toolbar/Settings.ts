@@ -14,6 +14,8 @@ import {
     EDITOR_FONT_SIZE_DEFAULT,
     FONT_SIZE_MIN,
     FONT_SIZE_MAX,
+    EDITOR_FONT_SIZE_MIN,
+    stepEditorFontSize,
     LINE_HEIGHT_KEY,
     LINE_HEIGHT_DEFAULT,
     LINE_HEIGHT_MIN,
@@ -81,14 +83,14 @@ const parsePxValue = (value: string): number | undefined => {
 };
 
 const resolveCurrentFontSize = (vditor: IVditor, isUI: boolean, fallback: number): number => {
-    const key = isUI ? UI_FONT_SIZE_KEY : EDITOR_FONT_SIZE_KEY;
-    const stored = getGlobalLocalStorageSetting<number>(key);
-    if (stored !== undefined) {
-        return stored;
+    if (isUI) {
+        const stored = getGlobalLocalStorageSetting<number>(UI_FONT_SIZE_KEY);
+        if (stored !== undefined) return stored;
+        return parsePxValue(getComputedStyle(vditor.element).getPropertyValue("--ui-font-size")) ?? fallback;
     }
 
-    if (isUI) {
-        return parsePxValue(getComputedStyle(vditor.element).getPropertyValue("--ui-font-size")) ?? fallback;
+    if (vditor.options.editorFontSize !== undefined) {
+        return vditor.options.editorFontSize;
     }
 
     const content = vditor.element.querySelector<HTMLElement>(".vditor-ir")
@@ -215,9 +217,18 @@ export class Settings extends MenuItem {
                 const defaultVal = isUI ? UI_FONT_SIZE_DEFAULT : EDITOR_FONT_SIZE_DEFAULT;
                 const current = resolveCurrentFontSize(vditor, isUI, defaultVal);
                 const step = parseInt(stepBtn.getAttribute("data-step") || "0", 10);
-                const next = Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, current + step));
-                setGlobalLocalStorageSetting(key, next);
-                vditor.element.style.setProperty(isUI ? "--ui-font-size" : "--editor-font-size", `${next}px`);
+                const min = isUI ? FONT_SIZE_MIN : EDITOR_FONT_SIZE_MIN;
+                const next = isUI
+                    ? Math.min(FONT_SIZE_MAX, Math.max(min, current + step))
+                    : stepEditorFontSize(current, step);
+                if (isUI) {
+                    setGlobalLocalStorageSetting(key, next);
+                    vditor.element.style.setProperty("--ui-font-size", `${next}px`);
+                } else {
+                    vditor.options.editorFontSize = next;
+                    vditor.element.style.setProperty("--editor-font-size", `${next}px`);
+                    vditor.options.onEditorFontSizeChange?.(next);
+                }
                 const valueEl = row.querySelector("[data-font-value]");
                 if (valueEl) valueEl.textContent = `${next}px`;
                 event.preventDefault();
@@ -312,6 +323,8 @@ export class Settings extends MenuItem {
             // Reset settings
             if (event.target.closest("[data-reset-settings]")) {
                 resetGlobalSettings();
+                vditor.options.editorFontSize = undefined;
+                vditor.options.onEditorFontSizeChange?.(undefined);
                 for (const prop of ["--ui-font-size", "--editor-font-size", "--editor-line-height", "--editor-font-family", "--code-font-family", "--bold-color", "--vditor-page-width", "--vditor-image-max-width", "--vditor-image-max-height"]) {
                     vditor.element.style.removeProperty(prop);
                 }
