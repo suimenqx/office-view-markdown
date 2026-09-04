@@ -2,6 +2,11 @@
 
 `office-view-markdown` provides real-time WYSIWYG Markdown editing and live preview in Visual Studio Code.
 
+> **Upstream attribution:** This fork is derived from Weijan Chen's MIT-licensed
+> [vscode-office](https://github.com/cweijan/vscode-office) project. The original
+> copyright and license notice are retained in [LICENSE](LICENSE); additional
+> attribution details are recorded in [NOTICE](NOTICE).
+
 ## Features
 
 - WYSIWYG and instant-rendering Markdown editing
@@ -48,10 +53,12 @@ npm run package
 
 ## Attribution and acknowledgments
 
-Office View Markdown is a Markdown-only product derived from
-[vscode-office](https://github.com/cweijan/vscode-office), created by Weijan Chen
-([cweijan](https://github.com/cweijan)). This project retains the upstream MIT
-license and copyright notice; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+Office View Markdown is a fork derived from the original
+[vscode-office repository](https://github.com/cweijan/vscode-office), created by
+Weijan Chen ([cweijan](https://github.com/cweijan)). Substantial portions of this
+project originate from that MIT-licensed work. The upstream copyright and MIT
+license notice remain in [LICENSE](LICENSE), and [NOTICE](NOTICE) identifies the
+fork's modifications and provenance.
 
 The Markdown editor is based on [Vditor](https://github.com/Vanessa219/vditor).
 
