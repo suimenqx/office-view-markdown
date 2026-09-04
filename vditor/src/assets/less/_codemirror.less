@@ -357,6 +357,7 @@
   cursor: pointer;
   pointer-events: auto;
   transition: var(--transition);
+  gap: 6px;
 
   &:hover {
     background: color-mix(in srgb, var(--cm-fg-color, var(--toolbar-icon-color)) 10%, var(--cm-lang-trigger-bg, var(--second-bg-color, var(--dropdown-hover-background, var(--toolbar-background-color)))));
@@ -364,6 +365,7 @@
 
   &--done {
     background: color-mix(in srgb, var(--cm-fg-color, var(--toolbar-icon-color)) 12%, var(--cm-lang-trigger-bg, var(--second-bg-color, var(--dropdown-hover-background, var(--toolbar-background-color)))));
+    color: var(--success);
   }
 }
 

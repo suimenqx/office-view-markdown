@@ -199,6 +199,42 @@ export const resolveCodeMirrorLanguageName = (languageName: string): string => {
     return normalized;
 };
 
+const LANGUAGE_LABEL_ALIASES: Record<string, string> = {
+    bash: "Shell",
+    csharp: "C#",
+    fsharp: "F#",
+    javascriptreact: "JSX",
+    js: "JavaScript",
+    javascript: "JavaScript",
+    jsonc: "JSON",
+    markdown: "Markdown",
+    md: "Markdown",
+    math: "Math",
+    objectivec: "Objective-C",
+    objectivecpp: "Objective-C++",
+    py: "Python",
+    python: "Python",
+    sh: "Shell",
+    shell: "Shell",
+    shellscript: "Shell",
+    ts: "TypeScript",
+    typescript: "TypeScript",
+    typescriptreact: "TSX",
+    yml: "YAML",
+    yaml: "YAML",
+    zsh: "Shell",
+};
+
+export const getCodeBlockLanguageLabel = (languageName: string): string => {
+    if (!languageName.trim()) {
+        return getPlainTextLanguageLabel();
+    }
+    const normalized = languageName.trim().toLowerCase();
+    return LANGUAGE_LABEL_ALIASES[normalized]
+        || resolveCodeMirrorLanguageName(languageName)
+        || getPlainTextLanguageLabel();
+};
+
 export const isSameCodeMirrorLanguage = (languageName: string, candidateName: string): boolean =>
     resolveCodeMirrorLanguageName(languageName).toLowerCase() ===
     resolveCodeMirrorLanguageName(candidateName).toLowerCase();

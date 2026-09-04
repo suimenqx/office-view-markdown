@@ -4,8 +4,10 @@
 
 **Blocked by:** 01 Design Tokens foundation
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Common languages display readable names (e.g. TypeScript, Shell)
-- [ ] Copy success feedback is visible then reverts
-- [ ] Existing chrome capabilities (language search / theme / expand where present) still work
+- [x] Common languages display readable names (e.g. TypeScript, Shell)
+- [x] Copy success feedback is visible then reverts
+- [x] Existing chrome capabilities (language search / theme / expand where present) still work
+
+**Comments:** Extended the existing code-block chrome to normalize common language IDs to readable labels such as TypeScript, Shell, JSX, and YAML. Copy now visibly changes its label and icon to Copied/check for 500ms before reverting, while preserving existing language search, theme, expand, and copy behavior. Verified with `node test/unit/codeBlockLanguageLabel.test.js` and `npm run build`.

@@ -14,6 +14,7 @@ import {
 import {
     filterCodeMirrorLanguageNames,
     isSameCodeMirrorLanguage,
+    getCodeBlockLanguageLabel,
     toCodeBlockLanguageName,
 } from "./codeBlockLanguageHints";
 import { applyCodeBlockLanguageChange } from "./codeBlockLanguageInput";
@@ -116,10 +117,7 @@ registerPopoverOutsideDismiss({
 });
 
 const formatLanguageLabel = (languageName: string) => {
-    if (!languageName) {
-        return window.VditorI18n.plaintext || "Plain Text";
-    }
-    return languageName.replace(/-/g, " ");
+    return getCodeBlockLanguageLabel(languageName);
 };
 
 const bindDeleteButton = (
@@ -149,12 +147,16 @@ const bindCopyButton = (copyBtn: HTMLButtonElement, performCopy: () => Promise<b
 
     const defaultLabel = window.VditorI18n.copy || "Copy";
     const copiedLabel = window.VditorI18n.copied || "Copied";
+    const copyLabel = () => copyBtn.querySelector(".vditor-cm-chrome__copy-label") as HTMLElement | null;
 
     const getCopyIcon = () => copyBtn.querySelector(".vditor-cm-chrome__copy-icon .codicon") as HTMLElement | null;
 
     const resetCopyState = () => {
         const icon = getCopyIcon();
         copyBtn.setAttribute("aria-label", defaultLabel);
+        if (copyLabel()) {
+            copyLabel()!.textContent = defaultLabel;
+        }
         if (icon) {
             icon.classList.remove("codicon-check");
             icon.classList.add("codicon-copy");
@@ -175,6 +177,9 @@ const bindCopyButton = (copyBtn: HTMLButtonElement, performCopy: () => Promise<b
         }
         const icon = getCopyIcon();
         copyBtn.setAttribute("aria-label", copiedLabel);
+        if (copyLabel()) {
+            copyLabel()!.textContent = copiedLabel;
+        }
         if (icon) {
             icon.classList.remove("codicon-copy");
             icon.classList.add("codicon-check");
@@ -557,7 +562,7 @@ const createChromeRoot = (editable: boolean) => {
     copyBtn.type = "button";
     copyBtn.className = "vditor-cm-chrome__copy";
     copyBtn.setAttribute("aria-label", window.VditorI18n.copy || "Copy");
-    copyBtn.innerHTML = `<span class="vditor-cm-chrome__copy-icon">${codicon("copy")}</span>`;
+    copyBtn.innerHTML = `<span class="vditor-cm-chrome__copy-icon">${codicon("copy")}</span><span class="vditor-cm-chrome__copy-label">${window.VditorI18n.copy || "Copy"}</span>`;
     actions.appendChild(copyBtn);
     actions.appendChild(expandBtn);
 
