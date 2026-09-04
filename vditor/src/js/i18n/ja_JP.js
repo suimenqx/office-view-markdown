@@ -81,6 +81,7 @@ window.VditorI18n = {
   'ordered-list': '順序のあるリスト',
   'outdent': 'ぶら下げインデント',
   'outline': '概要',
+  'outlineHeader': 'このページ',
   'over': 'オーバー',
   'quote': '引用段落',
   'redo': '戻る',

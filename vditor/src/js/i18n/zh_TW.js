@@ -83,6 +83,7 @@ window.VditorI18n = {
   'ordered-list': '有序列表',
   'outdent': '列表反向縮排',
   'outline': '大綱',
+  'outlineHeader': '本頁目錄',
   'over': '超過',
   'quote': '引用',
   'redo': '重做',

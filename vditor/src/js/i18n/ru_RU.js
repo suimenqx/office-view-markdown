@@ -81,6 +81,7 @@ window.VditorI18n = {
   'ordered-list': 'Упорядоченный список',
   'outdent': 'Выступ',
   'outline': 'Содержание',
+  'outlineHeader': 'На этой странице',
   'over': 'Над',
   'quote': 'Цитата',
   'redo': 'Вернуть',

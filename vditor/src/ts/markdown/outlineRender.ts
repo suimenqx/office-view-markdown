@@ -3,6 +3,7 @@ import { closeMobileOutline, isEditorThemeMobileLayout } from "../ui/mobileOutli
 import { codicon } from "../util/codicon";
 import { hasClosestByHeadings } from "../util/hasClosestByHeadings";
 import { mathRender } from "./mathRender";
+import { OUTLINE_SCROLL_OFFSET } from "../outline/outlineConstants";
 
 const stripIrOutlineMarkers = (element: HTMLElement) => {
     const clone = element.cloneNode(true) as HTMLElement;
@@ -31,7 +32,6 @@ const getOutlineHeadingHTML = (item: HTMLElement, vditor?: IVditor) => {
     return clone.outerHTML;
 };
 
-export const OUTLINE_SCROLL_OFFSET = 15;
 const OUTLINE_ACTIVE_MAX_OFFSET = 120;
 const OUTLINE_ACTIVE_VIEWPORT_RATIO = 0.25;
 

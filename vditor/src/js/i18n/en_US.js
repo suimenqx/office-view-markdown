@@ -93,6 +93,7 @@ window.VditorI18n = {
   'ordered-list': 'Order List',
   'outdent': 'Outdent',
   'outline': 'Outline',
+  'outlineHeader': 'On this page',
   'over': 'over',
   'quote': 'Quote',
   'redo': 'Redo',

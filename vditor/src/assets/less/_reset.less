@@ -127,6 +127,7 @@
       margin-bottom: 16px;
       font-weight: 600;
       line-height: 1.25;
+      scroll-margin-top: var(--outline-scroll-offset, 0px);
     }
 
     h1 {
@@ -654,7 +655,7 @@
       border-radius: var(--vditor-popover-radius, 6px);
       cursor: pointer;
       color: var(--front-color, var(--textarea-text-color));
-      transition: background-color 0.15s ease, color 0.15s ease;
+      transition: var(--transition);
 
       &>svg,
       &>.codicon {
@@ -687,6 +688,7 @@
       &.vditor-outline__item--active {
         background-color: var(--outline-active-bg);
         color: var(--outline-active-color, var(--front-color, var(--textarea-text-color)));
+        box-shadow: inset 3px 0 0 var(--info);
 
         &>span {
           color: inherit;

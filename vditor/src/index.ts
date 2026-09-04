@@ -16,6 +16,7 @@ import { getHTML } from "./ts/markdown/getHTML";
 import { getMarkdown } from "./ts/markdown/getMarkdown";
 import { setLute } from "./ts/markdown/setLute";
 import { Outline } from "./ts/outline/index";
+import { resolveOutlineHeader } from "./ts/outline/outlineLabel";
 import { Tip } from "./ts/tip/index";
 import { Toolbar } from "./ts/toolbar/index";
 import { disableToolbar, hidePanel } from "./ts/toolbar/setToolbar";
@@ -463,7 +464,7 @@ class Vditor {
             lute: undefined,
             options: mergedOptions,
             originalInnerHTML: id.innerHTML,
-            outline: new Outline(window.VditorI18n.outline),
+            outline: new Outline(resolveOutlineHeader(window.VditorI18n)),
             tip: new Tip(),
         };
 

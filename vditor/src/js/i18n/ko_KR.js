@@ -81,6 +81,7 @@ window.VditorI18n = {
   'ordered-list': '순서있는 목록',
   'outdent': '내어쓰기',
   'outline': '개요',
+  'outlineHeader': '이 페이지의 목차',
   'over': '오버',
   'quote': '인용단락',
   'redo': '되돌리기',

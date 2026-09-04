@@ -1,5 +1,6 @@
 import { pinOutlineActive } from "../outline/updateOutlineActive";
-import { scrollOutlineTarget, OUTLINE_SCROLL_OFFSET } from "../markdown/outlineRender";
+import { scrollOutlineTarget } from "../markdown/outlineRender";
+import { OUTLINE_SCROLL_OFFSET } from "../outline/outlineConstants";
 import {
     isMathBlockElement,
     isMathBlockEmpty,

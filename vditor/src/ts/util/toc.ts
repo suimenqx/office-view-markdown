@@ -1,7 +1,8 @@
 import {markOutlineEditing, pinOutlineActive} from "../outline/updateOutlineActive";
 import {isOutlinePanelVisible} from "../ui/mobileOutlineMenu";
 import {mathRender} from "../markdown/mathRender";
-import {scrollOutlineTarget, OUTLINE_SCROLL_OFFSET} from "../markdown/outlineRender";
+import {scrollOutlineTarget} from "../markdown/outlineRender";
+import {OUTLINE_SCROLL_OFFSET} from "../outline/outlineConstants";
 import {execAfterRender, insertAfterBlock, insertBeforeBlock} from "./fixBrowserBehavior";
 import {hasClosestByAttribute, hasClosestByClassName} from "./hasClosest";
 import {getSelectPosition} from "./selection";

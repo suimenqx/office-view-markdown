@@ -9,6 +9,7 @@ import { initEditorTheme } from "./setEditorTheme";
 import { initMermaidTheme } from "./setMermaidTheme";
 import { resolveCodeMirrorTheme, setCodeTheme } from "./setCodeTheme";
 import { setTheme } from "./setTheme";
+import { OUTLINE_SCROLL_OFFSET } from "../outline/outlineConstants";
 import { applyEditorSettings } from "../util/globalLocalStorageSettings";
 import { initSaveToolbarState } from "../util/saveToolbarState";
 import { configureHistoryDeferByDocumentLength } from "../util/historySchedule";
@@ -18,6 +19,7 @@ export const initUI = (vditor: IVditor) => {
   purgeLegacyDocumentStateKeys();
   vditor.element.innerHTML = "";
   vditor.element.classList.add("vditor");
+  vditor.element.style.setProperty("--outline-scroll-offset", `${OUTLINE_SCROLL_OFFSET}px`);
   // 支持 RTL
   if (vditor.options.rtl) {
     vditor.element.setAttribute("dir", "rtl")
