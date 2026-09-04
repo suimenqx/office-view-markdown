@@ -29,6 +29,7 @@ import { mermaidRender } from "../markdown/mermaidRender";
 import { plantumlRender } from "../markdown/plantumlRender";
 import { stripGitHubAlertPresentation } from "../markdown/githubAlerts";
 import { removeActionableEmptyState } from "../ui/actionableEmptyState";
+import { stripImagePresentationFromClone } from "../preview/imageFigure";
 import {
     deactivateInlineMathEditorsInScope,
     flushInlineMathToSyncCode,
@@ -2189,6 +2190,7 @@ export const buildEditorHtmlForMarkdown = (vditor: IVditor) => {
         container.removeAttribute("contenteditable");
     }
     removeActionableEmptyState(clone);
+    stripImagePresentationFromClone(clone);
     clone.querySelectorAll("img[data-vditor-image-error='true']").forEach((img) => {
         img.removeAttribute("data-vditor-image-error");
         (img as HTMLElement).style.removeProperty("display");

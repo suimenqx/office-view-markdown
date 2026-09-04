@@ -24,6 +24,7 @@ import { clearActiveHeadingMarker } from "./updateActiveHeadingMarker";
 import { handleAutoSymbolPair } from "./autoSymbol";
 import { handleVscodeShortcut } from "./vscodeShortcut";
 import { renderActionableEmptyState } from "../ui/actionableEmptyState";
+import { enhanceImagePresentation } from "../preview/imageFigure";
 import {
     EDITOR_FONT_SIZE_DEFAULT,
     EDITOR_FONT_SIZE_KEY,
@@ -35,6 +36,7 @@ import {
 } from "./globalLocalStorageSettings";
 
 const markImageLoading = (img: HTMLImageElement) => {
+    enhanceImagePresentation(img);
     if (img.complete && img.naturalWidth > 0) {
         return;
     }
