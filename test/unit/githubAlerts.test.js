@@ -17,12 +17,14 @@ buildSync({
 });
 
 try {
-  const { getGitHubAlertClass } = require(outfile);
+  const { getGitHubAlertClass, getGitHubAlertClassForCallout } = require(outfile);
   assert.strictEqual(getGitHubAlertClass('[!NOTE]'), 'alert--note');
   assert.strictEqual(getGitHubAlertClass('  [!warning]: check this'), 'alert--warning');
   assert.strictEqual(getGitHubAlertClass('[!TIP]\nUse this'), 'alert--tip');
   assert.strictEqual(getGitHubAlertClass('[!CAUTION]'), 'alert--caution');
   assert.strictEqual(getGitHubAlertClass('[!IMPORTANT]'), 'alert--important');
+  assert.strictEqual(getGitHubAlertClassForCallout('NOTE'), 'alert--note');
+  assert.strictEqual(getGitHubAlertClassForCallout('question'), undefined);
   assert.strictEqual(getGitHubAlertClass('ordinary quote'), undefined);
   assert.strictEqual(getGitHubAlertClass('[!NOTEBOOK]'), undefined);
   console.log('GitHub alert unit tests passed');

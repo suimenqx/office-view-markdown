@@ -27,6 +27,7 @@ import { stopHandledCodeMirrorKeymap, vditorCodeMirrorSetup } from "./codeMirror
 import { mathRender } from "../markdown/mathRender";
 import { mermaidRender } from "../markdown/mermaidRender";
 import { plantumlRender } from "../markdown/plantumlRender";
+import { stripGitHubAlertPresentation } from "../markdown/githubAlerts";
 import {
     deactivateInlineMathEditorsInScope,
     flushInlineMathToSyncCode,
@@ -2197,5 +2198,6 @@ export const buildEditorHtmlForMarkdown = (vditor: IVditor) => {
             parts.code.style.display = "";
         }
     }
+    stripGitHubAlertPresentation(clone);
     return clone.innerHTML;
 };

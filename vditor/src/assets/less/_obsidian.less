@@ -37,6 +37,23 @@
     &[data-subtype="faq" i] {
       --callout-accent: var(--chart-yellow);
     }
+
+    &.alert--note,
+    &.alert--important {
+      --callout-accent: var(--info);
+    }
+
+    &.alert--tip {
+      --callout-accent: var(--success);
+    }
+
+    &.alert--warning {
+      --callout-accent: var(--warning);
+    }
+
+    &.alert--caution {
+      --callout-accent: var(--error);
+    }
   }
 
   .callout-shell() {

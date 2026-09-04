@@ -11,4 +11,4 @@
 - [x] Edit round-trip preserves original Markdown (presentation-only; ADR 0005)
 - [x] Pure-function or equivalent seam maps marker → class and is unit-tested
 
-**Comments:** Added presentation-only GitHub Alert class mapping for NOTE, TIP, WARNING, CAUTION, and IMPORTANT markers, with semantic info/success/warning/error styling. The marker text and Markdown conversion path are untouched; ordinary blockquotes receive no alert class. Verified with `node test/unit/githubAlerts.test.js` and `npm run build`.
+**Comments:** Added presentation-only GitHub Alert class mapping for NOTE, TIP, WARNING, CAUTION, and IMPORTANT markers, including the existing default Obsidian `data-type="callout"` render path. Semantic info/success/warning/error styling is applied without adding a Callout type or toolbar. The export clone removes only generated callout icons so marker/title text remains source-safe; ordinary blockquotes receive no alert class. Verified with `node test/unit/githubAlerts.test.js` and `npm run build`.
