@@ -14,8 +14,17 @@ This document is the acceptance fixture for the Reading Surface. Use the outline
 > [!NOTE]
 > This GitHub Alert is presentation-only; editing must preserve its Markdown marker.
 
+> [!TIP]
+> Prefer Design Tokens for radius, shadow, and status colors across chrome.
+
+> [!IMPORTANT]
+> Frontmatter Presentation chips must keep all authored multi-value fields visible.
+
 > [!WARNING] PlantUML privacy
 > The unconfigured PlantUML state must offer Open Settings without sending this source to a default server.
+
+> [!CAUTION]
+> Do not inject presentation wrappers that break WYSIWYG paragraph structure.
 
 This ordinary blockquote remains an ordinary blockquote.
 

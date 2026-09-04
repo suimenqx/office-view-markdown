@@ -10,6 +10,10 @@ assert.ok(fs.existsSync(fixturePath), 'UX polish smoke fixture should exist');
 for (const fragment of [
   'title:',
   '> [!NOTE]',
+  '> [!TIP]',
+  '> [!IMPORTANT]',
+  '> [!WARNING]',
+  '> [!CAUTION]',
   '| Surface | Treatment |',
   '- [ ]',
   '![Reading Surface sample]',

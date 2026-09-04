@@ -22,3 +22,4 @@
 ## Comments
 
 - Code review (04–10 range): see `.scratch/ux-polish-mve/reviews/04-10-summary.md` (Standards + Spec).
+- Follow-up: `UxPolish.md` now exercises all five GitHub Alert types (NOTE/TIP/IMPORTANT/WARNING/CAUTION).

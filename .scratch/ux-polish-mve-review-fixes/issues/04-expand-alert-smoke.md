@@ -4,8 +4,10 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `UxPolish.md` (or successor fixture) includes all five alert markers
-- [ ] Smoke docs / ticket 10 notes updated if they list coverage
-- [ ] No forced version bump
+- [x] `UxPolish.md` (or successor fixture) includes all five alert markers
+- [x] Smoke docs / ticket 10 notes updated if they list coverage
+- [x] No forced version bump
+
+**Comments:** Expanded `test/markdown/UxPolish.md` with TIP/IMPORTANT/CAUTION; `smokePack.test.js` asserts all five markers. Noted on original ticket 10.
