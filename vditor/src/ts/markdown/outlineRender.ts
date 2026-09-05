@@ -4,6 +4,7 @@ import { codicon } from "../util/codicon";
 import { hasClosestByHeadings } from "../util/hasClosestByHeadings";
 import { mathRender } from "./mathRender";
 import { OUTLINE_SCROLL_OFFSET } from "../outline/outlineConstants";
+import { applyOutlineItemTitle } from "../outline/outlineItemTitle";
 
 const stripIrOutlineMarkers = (element: HTMLElement) => {
     const clone = element.cloneNode(true) as HTMLElement;
@@ -104,6 +105,7 @@ export const outlineRender = (contentElement: HTMLElement, targetElement: Elemen
     }
     const headingsElement = tocRoot.querySelectorAll("li > span[data-target-id]");
     headingsElement.forEach((item, index) => {
+        const titleText = item.textContent;
         if (item.nextElementSibling && item.nextElementSibling.tagName === "UL") {
             const iconHTML = codicon("chevron-down", "vditor-outline__action");
             item.innerHTML = `${iconHTML}<span>${item.innerHTML}</span>`;
@@ -111,6 +113,7 @@ export const outlineRender = (contentElement: HTMLElement, targetElement: Elemen
             item.innerHTML = `<span class="vditor-outline__placeholder" aria-hidden="true"></span><span>${item.innerHTML}</span>`;
         }
         item.setAttribute("data-target-id", ids[index]);
+        applyOutlineItemTitle(item, titleText);
     });
     tocHTML = tocRoot.innerHTML;
     if (headingsElement.length === 0) {

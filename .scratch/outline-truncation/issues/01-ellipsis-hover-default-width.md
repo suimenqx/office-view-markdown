@@ -4,10 +4,10 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Long outline labels show ellipsis (not mid-glyph clip without ellipsis)
-- [ ] Hover exposes full title (`title` or equivalent tip)
-- [ ] Default width ~280px; resize 120–480 and memory still work
-- [ ] No horizontal-scroll-as-primary for outline labels (`max-content` list width fixed)
-- [ ] Active/scroll-spy/collapse behavior unchanged; build + focused test pass
+- [x] Long outline labels show ellipsis (not mid-glyph clip without ellipsis)
+- [x] Hover exposes full title (`title` or equivalent tip)
+- [x] Default width ~280px; resize 120–480 and memory still work
+- [x] No horizontal-scroll-as-primary for outline labels (`max-content` list width fixed)
+- [x] Active/scroll-spy/collapse behavior unchanged; build + focused test pass

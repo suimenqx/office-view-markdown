@@ -1,6 +1,6 @@
 # Spec: Outline label truncation UX
 
-Status: ready-for-agent
+Status: done
 
 ## Problem Statement
 
