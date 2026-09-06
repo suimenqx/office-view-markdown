@@ -5,7 +5,12 @@ CODE_BIN=/usr/bin/code
 USER_DATA=$(mktemp -d /tmp/ovm-opendoc-ud-XXXXXX)
 RESULTS="$ROOT/test-results"
 LOG=$RESULTS/gui-open-doc-stable.log
-EXT_PATH=/workspace/_shared/office-view-markdown
+INSTALLED_EXT=/home/box/.vscode/extensions/suimenqx.office-view-markdown-0.1.0
+if [ -d "$INSTALLED_EXT" ]; then
+  EXT_PATH="$INSTALLED_EXT"
+else
+  EXT_PATH=/workspace/_shared/office-view-markdown
+fi
 mkdir -p "$RESULTS" "$USER_DATA/User"
 cat > "$USER_DATA/User/settings.json" << 'JSON'
 {
@@ -13,6 +18,7 @@ cat > "$USER_DATA/User/settings.json" << 'JSON'
   "workbench.welcomePage.walkthroughs.openOnInstall": false,
   "telemetry.telemetryLevel": "off",
   "window.restoreWindows": "none",
+  "files.hotExit": "off",
   "security.workspace.trust.enabled": false,
   "workbench.colorTheme": "Default Light Modern",
   "editor.fontSize": 13,
