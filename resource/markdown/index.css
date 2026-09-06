@@ -1,3 +1,8 @@
+/* Open-document boot: hold shell until Reading Surface chrome is ready (ADR 0008). */
+html.ovm-boot body {
+    visibility: hidden;
+}
+
 body {
     padding: 0;
 }

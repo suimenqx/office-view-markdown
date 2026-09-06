@@ -1,7 +1,7 @@
 import { getCodeMirrorView, isInsideCodeBlockChrome, isInsideCodeMirror, restoreCodeMirrorFocus } from "../codeBlock/codeMirrorManager";
 import { syncOutlineOnDocumentLoad } from "../outline/updateOutlineActive";
 import { accessLocalStorage } from "./compatibility";
-import { adjustEditorScrollBy, getFocusStateKey, restoreDocumentScroll } from "./documentState";
+import { adjustEditorScrollBy, beginOpenDocumentRestore, endOpenDocumentRestore, getFocusStateKey, planOpenDocumentRestore, restoreDocumentScroll } from "./documentState";
 import {
     getEditorRange,
     getEditorTextOffset,
@@ -32,6 +32,8 @@ type RestoreFocusOptions = {
     onLoad?: boolean;
     /** 是否恢复光标并 focus；默认 true。false 时仍恢复滚动 */
     restoreCaret?: boolean;
+    /** Called after on-load restore has settled (scroll/caret applied, outline synced). */
+    onSettled?: () => void;
 };
 
 type CaretViewportMetrics = {
@@ -372,11 +374,6 @@ const finishDocumentLoadScroll = (vditor: IVditor, state: CacheFocusState | null
     restoreDocumentScroll(vditor);
 };
 
-const scheduleOutlineSyncOnLoad = (vditor: IVditor) => {
-    window.requestAnimationFrame(() => {
-        syncOutlineOnDocumentLoad(vditor);
-    });
-};
 
 export const saveCacheFocus = (vditor: IVditor) => {
     const editor = vditor[vditor.currentMode].element;
@@ -415,10 +412,30 @@ export const saveCacheFocus = (vditor: IVditor) => {
     }));
 };
 
+const isEditorContentReady = (vditor: IVditor) => {
+    const editor = vditor[vditor.currentMode]?.element;
+    return !!editor && editor.childElementCount > 0;
+};
+
+const whenEditorContentReady = (vditor: IVditor, callback: () => void, attempts = 45) => {
+    if (isEditorContentReady(vditor) || attempts <= 0) {
+        window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(callback);
+        });
+        return;
+    }
+    window.requestAnimationFrame(() => {
+        whenEditorContentReady(vditor, callback, attempts - 1);
+    });
+};
+
 export const restoreCacheFocus = (vditor: IVditor, options?: RestoreFocusOptions) => {
     const onLoad = options?.onLoad === true;
-    const restoreCaret = options?.restoreCaret !== false;
+    const plan = planOpenDocumentRestore(options?.restoreCaret);
+    const restoreCaret = plan.restoreCaret;
+    const onSettled = options?.onSettled;
     if (!canRestoreFocus(vditor, onLoad)) {
+        onSettled?.();
         return;
     }
     if (wasCacheContentRestored(vditor)) {
@@ -426,11 +443,23 @@ export const restoreCacheFocus = (vditor: IVditor, options?: RestoreFocusOptions
     }
 
     const state = readFocusState(vditor);
-    if (!state || state.mode !== vditor.currentMode) {
+    const usableState = state && state.mode === vditor.currentMode ? state : null;
+
+    if (!usableState) {
         if (onLoad) {
-            finishDocumentLoadScroll(vditor, null);
-            scheduleOutlineSyncOnLoad(vditor);
+            beginOpenDocumentRestore(vditor);
+            whenEditorContentReady(vditor, () => {
+                finishDocumentLoadScroll(vditor, null);
+                syncOutlineOnDocumentLoad(vditor);
+                window.requestAnimationFrame(() => {
+                    finishDocumentLoadScroll(vditor, null);
+                    endOpenDocumentRestore(vditor);
+                    onSettled?.();
+                });
+            });
+            return;
         }
+        onSettled?.();
         return;
     }
 
@@ -438,23 +467,38 @@ export const restoreCacheFocus = (vditor: IVditor, options?: RestoreFocusOptions
         focusSavedMap.set(vditor, true);
     }
 
-    const apply = () => {
+    const applyOnLoad = () => {
+        beginOpenDocumentRestore(vditor);
         if (restoreCaret) {
-            applyFocusState(vditor, state);
-        }
-        if (!onLoad) {
-            return;
-        }
-        if (restoreCaret) {
-            finishDocumentLoadScroll(vditor, state);
+            applyFocusState(vditor, usableState);
+            finishDocumentLoadScroll(vditor, usableState);
         } else {
-            restoreDocumentScrollOnLoad(vditor, state);
+            restoreDocumentScrollOnLoad(vditor, usableState);
         }
-        scheduleOutlineSyncOnLoad(vditor);
+        // Sync outline before reveal so active-state does not flash on first paint.
+        syncOutlineOnDocumentLoad(vditor);
+        window.requestAnimationFrame(() => {
+            if (restoreCaret) {
+                finishDocumentLoadScroll(vditor, usableState);
+            } else {
+                restoreDocumentScrollOnLoad(vditor, usableState);
+            }
+            endOpenDocumentRestore(vditor);
+            onSettled?.();
+        });
     };
 
+    if (onLoad) {
+        whenEditorContentReady(vditor, applyOnLoad);
+        return;
+    }
+
     window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(apply);
+        window.requestAnimationFrame(() => {
+            if (restoreCaret) {
+                applyFocusState(vditor, usableState);
+            }
+        });
     });
 };
 

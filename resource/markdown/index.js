@@ -119,11 +119,18 @@ handler.on("open", async (md) => {
           editor.applyViewerSettings(viewerSettings.settings);
         }
       }
+      // Host Editor Font Size must win on first paint (no localStorage override jump).
+      if (editorFontSize !== undefined) {
+        editor.setEditorFontSize(editorFontSize);
+      }
       handler.on('viewerSettingsSync', ({ enabled }) => {
         editor.setViewerSettingsSyncEnabled(!!enabled);
       });
       handler.on('viewerSettings', (settings) => {
         editor.applyViewerSettings(settings);
+        if (editorFontSize !== undefined) {
+          editor.setEditorFontSize(editorFontSize);
+        }
       });
       handler.on('markdownConfig', (update) => {
         if (update.editorTheme !== undefined) {
@@ -166,10 +173,19 @@ handler.on("open", async (md) => {
           editor.scrollToBlock(fragment);
         }
       })
-      editor.restoreDocumentSession(true, !!shouldRestoreFocus)
-      if (pendingFragment) {
-        editor.scrollToBlock(pendingFragment);
-      }
+      let revealed = false;
+      const revealReadingSurface = () => {
+        if (revealed) {
+          return;
+        }
+        revealed = true;
+        if (pendingFragment) {
+          editor.scrollToBlock(pendingFragment);
+        }
+        document.documentElement.classList.remove("ovm-boot");
+      };
+      editor.restoreDocumentSession(true, !!shouldRestoreFocus, revealReadingSurface);
+      window.setTimeout(revealReadingSurface, 2000);
     }
   })
   bindShortcut(handler, editor, workspaceBaseUrl);

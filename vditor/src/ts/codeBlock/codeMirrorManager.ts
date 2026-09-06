@@ -15,6 +15,7 @@ import {
     setRangeByWbr,
     setSelectionFocus,
 } from "../util/selection";
+import { isOpenDocumentRestoring } from "../util/documentState";
 import { afterRenderEvent } from "../wysiwyg/afterRenderEvent";
 import {
     ensureCodeBlockChrome,
@@ -384,6 +385,15 @@ const scheduleLazyTeardown = (blockElement: HTMLElement) => {
     lazyTeardownTimers.set(blockElement, timer);
 };
 
+const mountCodeMirrorForViewport = (vditor: IVditor, blockElement: HTMLElement) => {
+    const mount = () => mountCodeMirror(blockElement, vditor, true);
+    if (isOpenDocumentRestoring(vditor)) {
+        preserveEditorScroll(vditor, mount);
+    } else {
+        mount();
+    }
+};
+
 const handleLazyCodeBlockVisibility = (
     vditor: IVditor,
     blockElement: HTMLElement,
@@ -397,7 +407,7 @@ const handleLazyCodeBlockVisibility = (
         blockElement.classList.remove(CM_PLACEHOLDER_CLASS);
         if (!bindings.has(blockElement)) {
             enforceMaxMounted(vditor, blockElement);
-            mountCodeMirror(blockElement, vditor, true);
+        mountCodeMirrorForViewport(vditor, blockElement);
         }
         return;
     }
@@ -502,7 +512,7 @@ const scheduleLazyCodeBlock = (vditor: IVditor, blockElement: HTMLElement) => {
     }
     if (isBlockNearViewport(blockElement)) {
         enforceMaxMounted(vditor, blockElement);
-        mountCodeMirror(blockElement, vditor, true);
+        mountCodeMirrorForViewport(vditor, blockElement);
     } else {
         if (bindings.has(blockElement)) {
             cancelLazyTeardown(blockElement);
@@ -1676,14 +1686,14 @@ export const restoreCodeMirrorFocus = (
     if (!blockElement) {
         return;
     }
-    if (!bindings.get(blockElement)) {
-        mountCodeMirror(blockElement, vditor, true);
-    }
-    const binding = bindings.get(blockElement);
-    if (!binding) {
-        return;
-    }
-    const apply = () => {
+    const run = () => {
+        if (!bindings.get(blockElement)) {
+            mountCodeMirror(blockElement, vditor, true);
+        }
+        const binding = bindings.get(blockElement);
+        if (!binding) {
+            return;
+        }
         const docLength = binding.view.state.doc.length;
         const safeAnchor = Math.max(0, Math.min(anchor, docLength));
         const safeHead = Math.max(0, Math.min(head, docLength));
@@ -1693,7 +1703,7 @@ export const restoreCodeMirrorFocus = (
         });
         focusCmViewWithoutScroll(binding.view);
     };
-    preserveEditorScroll(vditor, apply);
+    preserveEditorScroll(vditor, run);
 };
 
 export const focusCodeMirror = (

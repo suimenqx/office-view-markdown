@@ -204,3 +204,31 @@ export const restoreDocumentScroll = (vditor: IVditor, scrollTop?: number) => {
     }
     applyEditorScroll(vditor, top);
 };
+
+type OpenDocumentRestoreSession = {
+    active: boolean;
+};
+
+const openDocumentRestoreSessions = new WeakMap<IVditor, OpenDocumentRestoreSession>();
+
+/** Mark open-document restore so lazy CodeMirror mounts preserve scroll (ADR 0008). */
+export const beginOpenDocumentRestore = (vditor: IVditor) => {
+    openDocumentRestoreSessions.set(vditor, { active: true });
+};
+
+export const isOpenDocumentRestoring = (vditor: IVditor) => {
+    return openDocumentRestoreSessions.get(vditor)?.active === true;
+};
+
+export const endOpenDocumentRestore = (vditor: IVditor) => {
+    const session = openDocumentRestoreSessions.get(vditor);
+    if (session) {
+        session.active = false;
+    }
+};
+
+/** Product plan for open restore: scroll always; caret optional. */
+export const planOpenDocumentRestore = (restoreCaret?: boolean) => ({
+    restoreScroll: true as const,
+    restoreCaret: restoreCaret !== false,
+});
