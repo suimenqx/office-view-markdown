@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const http = require('http');
 const os = require('os');
-const { runTests } = require('/workspace/vscode-extension-dev/hello-extension/node_modules/@vscode/test-electron');
+const { runTests } = require('/workspace/_shared/vscode-extension-dev/hello-extension/node_modules/@vscode/test-electron');
 
 const MINIMAL_SVG =
   '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10" fill="green"/></svg>';
@@ -53,7 +53,7 @@ async function main() {
 
   const installedExt = '/home/box/.vscode/extensions/suimenqx.office-view-markdown-0.1.0';
   const vscodeExecutablePath =
-    '/workspace/vscode-extension-dev/hello-extension/.vscode-test/vscode-linux-x64-1.136.1/code';
+    '/workspace/_shared/vscode-extension-dev/hello-extension/.vscode-test/vscode-linux-x64-1.136.1/code';
   const extensionTestsPath = path.resolve(__dirname, './index-plantuml');
   const sampleWorkspace = path.resolve(__dirname, '../markdown');
 

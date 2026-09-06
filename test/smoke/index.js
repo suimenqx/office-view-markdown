@@ -1,6 +1,6 @@
 const path = require('path');
 const Mocha = require(path.join(
-  '/workspace/vscode-extension-dev/hello-extension/node_modules/mocha'
+  '/workspace/_shared/vscode-extension-dev/hello-extension/node_modules/mocha'
 ));
 
 function run() {

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
-CODE_BIN=/workspace/vscode-extension-dev/hello-extension/.vscode-test/vscode-linux-x64-1.136.1/bin/code
+CODE_BIN=/workspace/_shared/vscode-extension-dev/hello-extension/.vscode-test/vscode-linux-x64-1.136.1/bin/code
 USER_DATA=$(mktemp -d /tmp/ovm-ud-XXXXXX)
 EXT_DIR=$(mktemp -d /tmp/ovm-ex-XXXXXX)
-RESULTS=/workspace/office-view-markdown/test-results
+RESULTS=/workspace/_shared/office-view-markdown/test-results
 LOG=$RESULTS/gui-diagrams.log
 mkdir -p "$RESULTS" "$USER_DATA/User"
 cat > "$USER_DATA/User/settings.json" << 'JSON'
@@ -37,8 +37,8 @@ export DISPLAY
 echo DISPLAY=\$DISPLAY >> '$LOG'
 '$CODE_BIN' --user-data-dir='$USER_DATA' --extensions-dir='$EXT_DIR' \
   --disable-workspace-trust --skip-welcome --skip-release-notes \
-  --extensionDevelopmentPath=/workspace/office-view-markdown \
-  /workspace/office-view-markdown/test/markdown >>'$LOG' 2>&1 &
+  --extensionDevelopmentPath=/workspace/_shared/office-view-markdown \
+  /workspace/_shared/office-view-markdown/test/markdown >>'$LOG' 2>&1 &
 CPID=\$!
 for i in \$(seq 1 45); do
   sleep 1
