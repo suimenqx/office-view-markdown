@@ -34,6 +34,8 @@ window.VditorI18n = {
   'copyFailed': '該圖表無法複製',
   'copied': '已複製',
   'copy': '複製',
+  'pasteRichTextWarning': '貼上時已捨棄部分豐富文字格式。',
+  'pasteFailed': '貼上的圖片或資料夾是空的，未插入文件。',
   'actionableOpenSettings': '開啟設定',
   'actionableRetry': '重試',
   'actionableImageLoadFailed': '圖片載入失敗',

@@ -34,6 +34,8 @@ window.VditorI18n = {
   'copyFailed': 'This diagram cannot be copied',
   'copied': 'Copied',
   'copy': 'Copy',
+  'pasteRichTextWarning': 'Some rich formatting was dropped while pasting.',
+  'pasteFailed': 'The pasted image or folder was empty and was not inserted.',
   'actionableOpenSettings': 'Open Settings',
   'actionableRetry': 'Retry',
   'actionableImageLoadFailed': 'Image failed to load',

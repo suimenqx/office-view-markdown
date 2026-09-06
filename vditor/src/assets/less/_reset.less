@@ -368,6 +368,32 @@
       th {
         font-weight: 600;
       }
+
+      // WYSIWYG table editing states. Keep these selectors after hover so the
+      // caret/axis state remains visible while the pointer moves over a table.
+      &.vditor-table--active {
+        tr.vditor-table-row--active > td,
+        tr.vditor-table-row--active > th,
+        td.vditor-table-column--active,
+        th.vditor-table-column--active {
+          background-color: var(--table-active-wash);
+        }
+
+        td.vditor-table-cell--focused,
+        th.vditor-table-cell--focused {
+          outline: 2px solid var(--table-focus-ring);
+          outline-offset: -2px;
+        }
+      }
+
+      &.vditor-table--dragging {
+        tr.vditor-table-row--dragging > td,
+        tr.vditor-table-row--dragging > th,
+        td.vditor-table-column--dragging,
+        th.vditor-table-column--dragging {
+          opacity: 0.48;
+        }
+      }
     }
 
     p code,
@@ -880,4 +906,34 @@
   white-space: nowrap;
   font-size: 0;
   line-height: 0;
+}
+
+@media (forced-colors: active) {
+  .vditor .vditor-reset table {
+    --table-active-wash: Highlight;
+    --table-focus-ring: Highlight;
+    --table-drop-line: Highlight;
+  }
+
+  .vditor .vditor-reset table.vditor-table--active {
+    tr.vditor-table-row--active > td,
+    tr.vditor-table-row--active > th,
+    td.vditor-table-column--active,
+    th.vditor-table-column--active {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      color: HighlightText;
+    }
+
+    td.vditor-table-cell--focused,
+    th.vditor-table-cell--focused {
+      outline-color: Highlight;
+    }
+  }
+
+  .vditor .vditor-table-handle__drop-line {
+    forced-color-adjust: none;
+    background: Highlight;
+    box-shadow: none;
+  }
 }

@@ -32,6 +32,10 @@ export const isMarkdownLikePlain = (text: string): boolean => {
     if (/\[\[[^\]]+\]\]/.test(trimmed)) {
         return true;
     }
+    if (/^\s*\|?.+\|\s*$/m.test(trimmed) &&
+        /^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$/m.test(trimmed)) {
+        return true;
+    }
     if (inlineMdHTMLInPlain.test(trimmed)) {
         return true;
     }

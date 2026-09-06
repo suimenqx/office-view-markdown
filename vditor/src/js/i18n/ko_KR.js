@@ -32,6 +32,8 @@ window.VditorI18n = {
   'copyFailed': '이 다이어그램은 복사할 수 없습니다',
   'copied': '복사완료',
   'copy': '복사',
+  'pasteRichTextWarning': '붙여넣는 동안 일부 서식이 제거되었습니다.',
+  'pasteFailed': '붙여넣은 이미지 또는 폴더가 비어 있어 삽입하지 않았습니다.',
   'actionableOpenSettings': '설정 열기',
   'actionableRetry': '다시 시도',
   'actionableImageLoadFailed': '이미지를 불러오지 못했습니다',

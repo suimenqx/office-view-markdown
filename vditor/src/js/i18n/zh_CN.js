@@ -34,6 +34,8 @@ window.VditorI18n = {
   'copyFailed': '该图表无法复制',
   'copied': '已复制',
   'copy': '复制',
+  'pasteRichTextWarning': '粘贴时已丢弃部分富文本格式。',
+  'pasteFailed': '粘贴的图像或文件夹为空，未插入文档。',
   'actionableOpenSettings': '打开设置',
   'actionableRetry': '重试',
   'actionableImageLoadFailed': '图片加载失败',

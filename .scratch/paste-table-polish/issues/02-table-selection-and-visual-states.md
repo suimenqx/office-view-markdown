@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-- [ ] Multiline cell edit does not swallow newlines or jump selection unpredictably
-- [ ] Cell focus ring / row-col active wash / dragging opacity+drop-line per ui decision
-- [ ] Existing table handle insert/delete/align still work
-- [ ] Light/Dark(/HC) readable; build + unit tests pass
+- [x] Multiline cell edit does not swallow newlines or jump selection unpredictably
+- [x] Cell focus ring / row-col active wash / dragging opacity+drop-line per ui decision
+- [x] Existing table handle insert/delete/align still work
+- [ ] Light/Dark(/HC) readable; build + unit tests pass (blocked locally: dependencies are not installed)

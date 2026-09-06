@@ -29,6 +29,13 @@ const MENU_DIVIDER_CLASS = "vditor-table-handle__menu-divider";
 const MENU_ITEM_CURRENT_CLASS = "vditor-table-handle__menu-item--current";
 const DROP_LINE_CLASS = "vditor-table-handle__drop-line";
 const DRAGGING_CLASS = "vditor-table-handle--dragging";
+const TABLE_ACTIVE_CLASS = "vditor-table--active";
+const TABLE_DRAGGING_CLASS = "vditor-table--dragging";
+const CELL_FOCUS_CLASS = "vditor-table-cell--focused";
+const ROW_ACTIVE_CLASS = "vditor-table-row--active";
+const COLUMN_ACTIVE_CLASS = "vditor-table-column--active";
+const ROW_DRAGGING_CLASS = "vditor-table-row--dragging";
+const COLUMN_DRAGGING_CLASS = "vditor-table-column--dragging";
 const DRAG_THRESHOLD = 4;
 const MENU_VIEWPORT_MARGIN = 8;
 
@@ -68,6 +75,7 @@ interface ITableHandleState {
     dragMode: "row" | "col" | null;
     dragClientX: number;
     dragClientY: number;
+    visualTable: HTMLTableElement | null;
     onDocumentPointerDown?: (event: PointerEvent) => void;
     scrollTargets?: EventTarget[];
     onScroll?: () => void;
@@ -75,6 +83,55 @@ interface ITableHandleState {
 }
 
 const handleMap = new WeakMap<HTMLElement, ITableHandleState>();
+
+const clearTableCellVisualState = (table: HTMLTableElement | null) => {
+    if (!table) {
+        return;
+    }
+    table.classList.remove(TABLE_ACTIVE_CLASS, TABLE_DRAGGING_CLASS);
+    table.querySelectorAll(`.${CELL_FOCUS_CLASS}, .${ROW_ACTIVE_CLASS}, .${COLUMN_ACTIVE_CLASS}, .${ROW_DRAGGING_CLASS}, .${COLUMN_DRAGGING_CLASS}`)
+        .forEach((element) => {
+            element.classList.remove(
+                CELL_FOCUS_CLASS,
+                ROW_ACTIVE_CLASS,
+                COLUMN_ACTIVE_CLASS,
+                ROW_DRAGGING_CLASS,
+                COLUMN_DRAGGING_CLASS,
+            );
+        });
+};
+
+const applyTableCellVisualState = (
+    state: ITableHandleState,
+    table: HTMLTableElement | null,
+    focusedCell: HTMLTableCellElement | null,
+) => {
+    if (state.visualTable !== table) {
+        clearTableCellVisualState(state.visualTable);
+        state.visualTable = table;
+    }
+    if (!table) {
+        return;
+    }
+    clearTableCellVisualState(table);
+    if (!focusedCell || focusedCell.closest("table") !== table) {
+        return;
+    }
+    table.classList.add(TABLE_ACTIVE_CLASS);
+    focusedCell.classList.add(CELL_FOCUS_CLASS);
+    focusedCell.parentElement?.classList.add(ROW_ACTIVE_CLASS);
+    const columnIndex = getColumnIndex(focusedCell);
+    for (let i = 0; i < table.rows.length; i++) {
+        table.rows[i].cells[columnIndex]?.classList.add(COLUMN_ACTIVE_CLASS);
+    }
+};
+
+const clearTableDraggingVisualState = (state: ITableHandleState) => {
+    state.activeTable?.classList.remove(TABLE_DRAGGING_CLASS);
+    state.activeTable?.querySelectorAll(`.${ROW_DRAGGING_CLASS}, .${COLUMN_DRAGGING_CLASS}`).forEach((element) => {
+        element.classList.remove(ROW_DRAGGING_CLASS, COLUMN_DRAGGING_CLASS);
+    });
+};
 
 const isEditingMode = (vditor: IVditor) => {
     return vditor.currentMode === "wysiwyg" || vditor.currentMode === "ir";
@@ -195,6 +252,8 @@ const setAxisMenuOpen = (state: ITableHandleState, mode: "row" | "col" | null) =
 };
 
 const hideAll = (state: ITableHandleState) => {
+    clearTableCellVisualState(state.visualTable);
+    state.visualTable = null;
     state.dragging = false;
     state.dragMode = null;
     state.activeTable = null;
@@ -628,7 +687,9 @@ const refresh = (vditor: IVditor, state: ITableHandleState) => {
         focusedCell = state.focusedCell;
     }
     const tableFromFocus = focusedCell?.closest("table") as HTMLTableElement | null;
-    let activeTable = state.hoveredTable || tableFromFocus;
+    // A caret-selected table remains active while the pointer crosses another
+    // table; hover is only a fallback when there is no focused cell.
+    let activeTable = tableFromFocus || state.hoveredTable;
     if (!activeTable && isAxisMenuOpen(state) && state.activeTable) {
         activeTable = state.activeTable;
     }
@@ -641,6 +702,7 @@ const refresh = (vditor: IVditor, state: ITableHandleState) => {
     state.activeTable = activeTable;
     state.focusedCell =
         focusedCell && focusedCell.closest("table") === activeTable ? focusedCell : null;
+    applyTableCellVisualState(state, activeTable, state.focusedCell);
 
     observeActiveTable(state, activeTable);
     state.root.classList.add(`${ROOT_CLASS}--visible`);
@@ -710,6 +772,7 @@ const bindAxisControl = (
 
     const resetDrag = () => {
         dragStarted = false;
+        clearTableDraggingVisualState(state);
         state.dragging = false;
         state.dragMode = null;
         control.classList.remove(AXIS_DRAG_CLASS);
@@ -738,6 +801,14 @@ const bindAxisControl = (
             : getColumnIndex(state.focusedCell);
         dropIndex = sourceIndex;
         control.classList.add(AXIS_DRAG_CLASS);
+        state.activeTable.classList.add(TABLE_DRAGGING_CLASS);
+        if (mode === "row") {
+            state.activeTable.rows[sourceIndex]?.classList.add(ROW_DRAGGING_CLASS);
+        } else {
+            for (let i = 0; i < state.activeTable.rows.length; i++) {
+                state.activeTable.rows[i].cells[sourceIndex]?.classList.add(COLUMN_DRAGGING_CLASS);
+            }
+        }
         if (pointerId >= 0) {
             control.setPointerCapture(pointerId);
         }
@@ -886,6 +957,7 @@ export const initTableHandle = (vditor: IVditor, wrapper: HTMLElement, editorEle
         dragMode: null,
         dragClientX: 0,
         dragClientY: 0,
+        visualTable: null,
     };
     handleMap.set(editorElement, state);
 

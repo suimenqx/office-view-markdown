@@ -6,8 +6,8 @@
 
 **Status:** ready-for-agent
 
-- [ ] VS Code editor-data paste silent and correct
-- [ ] Rich HTML degrade path inserts usable content + single warning toast (i18n)
-- [ ] Empty image / folder paste errors without dirty write
-- [ ] Fixtures cover HTML table with in-cell newlines surviving to export
-- [ ] Parse/format toggles do not rewrite paste source
+- [x] VS Code editor-data paste silent and correct
+- [x] Rich HTML degrade path inserts usable content + single warning toast (i18n)
+- [x] Empty image / folder paste errors without dirty write
+- [x] Fixtures cover HTML table with in-cell newlines surviving to export
+- [x] Parse/format toggles do not rewrite paste source

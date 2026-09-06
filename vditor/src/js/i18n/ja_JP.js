@@ -32,6 +32,8 @@ window.VditorI18n = {
   'copyFailed': 'この図はコピーできません',
   'copied': 'コピー完了',
   'copy': 'コピー',
+  'pasteRichTextWarning': '貼り付け時に一部のリッチテキスト書式が失われました。',
+  'pasteFailed': '貼り付けた画像またはフォルダーが空のため、挿入されませんでした。',
   'actionableOpenSettings': '設定を開く',
   'actionableRetry': '再試行',
   'actionableImageLoadFailed': '画像の読み込みに失敗しました',

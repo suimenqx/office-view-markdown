@@ -32,6 +32,8 @@ window.VditorI18n = {
   'copyFailed': 'Эта диаграмма не может быть скопирована',
   'copied': 'Скопировано',
   'copy': 'Копировать',
+  'pasteRichTextWarning': 'При вставке часть форматирования была удалена.',
+  'pasteFailed': 'Вставленное изображение или папка пусты и не были добавлены.',
   'actionableOpenSettings': 'Открыть настройки',
   'actionableRetry': 'Повторить',
   'actionableImageLoadFailed': 'Не удалось загрузить изображение',

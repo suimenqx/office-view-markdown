@@ -20,8 +20,9 @@ import { highlightToolbar } from "./highlightToolbar";
 import { clearPendingHistoryTimeout, recordHistoryChange, recordHistoryPosition } from "./instantHistory";
 import { matchHotKey } from "./hotKey";
 import { isPasteableUrl, linkifyPastePlainText } from "./linkifyPaste";
-import { routePasteClipboard } from "./pasteRouting";
+import { isPasteHTMLDegraded, restoreTableCellBreaks, routePasteClipboard } from "./pasteRouting";
 import { processCodeRender, processPasteCode } from "./processCode";
+import { showToast } from "../ui/toast";
 import {
     getEditorRange,
     getSelectPosition,
@@ -974,14 +975,14 @@ export const fixTable = (vditor: IVditor, event: KeyboardEvent, range: Range) =>
     if (cellElement) {
         // 换行或软换行：在 cell 中添加 br
         if (!isCtrl(event) && !event.altKey && event.key === "Enter") {
-            if (!cellElement.lastElementChild ||
-                (cellElement.lastElementChild && (!cellElement.lastElementChild.isSameNode(cellElement.lastChild) ||
-                    cellElement.lastElementChild.tagName !== "BR"))) {
-                cellElement.insertAdjacentHTML("beforeend", "<br>");
+            if (!range.collapsed) {
+                range.deleteContents();
             }
             const brElement = document.createElement("br");
             range.insertNode(brElement);
             range.setStartAfter(brElement);
+            range.collapse(true);
+            setSelectionFocus(range);
             execAfterRender(vditor);
             event.preventDefault();
             return true;
@@ -1697,6 +1698,41 @@ const preparePastePlainText = (vditor: IVditor, text: string): string => {
     return linkifyPastePlainText(text);
 };
 
+const resolvePasteFile = (item: unknown): File | null => {
+    if (!item) {
+        return null;
+    }
+    const transferItem = item as { getAsFile?: () => File | null };
+    if (typeof transferItem.getAsFile === "function") {
+        return transferItem.getAsFile();
+    }
+    return item as File;
+};
+
+const resolvePasteFiles = (items: ArrayLike<unknown> | null | undefined): { files: File[]; invalid: boolean } => {
+    if (!items || items.length === 0) {
+        return { files: [], invalid: true };
+    }
+    const files: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+        const file = resolvePasteFile(items[i]);
+        if (!file || !file.name || file.size <= 0) {
+            return { files: [], invalid: true };
+        }
+        files.push(file);
+    }
+    return { files, invalid: false };
+};
+
+const showPasteError = (vditor: IVditor) => {
+    showToast(
+        vditor,
+        window.VditorI18n?.pasteFailed || "The pasted image or folder was empty and was not inserted.",
+        4000,
+        "error",
+    );
+};
+
 export const paste = async (vditor: IVditor, event: (ClipboardEvent | DragEvent) & { target: HTMLElement }, callback: {
     pasteCode(code: string): void,
 }) => {
@@ -1709,19 +1745,24 @@ export const paste = async (vditor: IVditor, event: (ClipboardEvent | DragEvent)
     event.stopPropagation();
     event.preventDefault();
     clearPendingHistoryTimeout(vditor);
-    let textHTML;
-    let textPlain;
-    let files;
-    let pastedFromMarkdown = false;
+    let textHTML = "";
+    let textPlain = "";
+    let files: ArrayLike<unknown> | null = null;
+    let pasteHasFilePayload = false;
+    let pasteInserted = false;
+    let preservePasteSource = false;
+    let richHTMLInserted = false;
 
     if ("clipboardData" in event) {
         textHTML = event.clipboardData.getData("text/html");
         textPlain = event.clipboardData.getData("text/plain");
         files = event.clipboardData.files;
+        pasteHasFilePayload = event.clipboardData.types.includes("Files");
     } else {
         textHTML = event.dataTransfer.getData("text/html");
         textPlain = event.dataTransfer.getData("text/plain");
-        if (event.dataTransfer.types.includes("Files")) {
+        pasteHasFilePayload = event.dataTransfer.types.includes("Files");
+        if (pasteHasFilePayload) {
             files = event.dataTransfer.items;
         }
     }
@@ -1794,6 +1835,8 @@ export const paste = async (vditor: IVditor, event: (ClipboardEvent | DragEvent)
         textHTML = "";
     }
 
+    const sourceHTML = textHTML;
+
     // process word
     const doc = new DOMParser().parseFromString(textHTML, "text/html");
     if (doc.body) {
@@ -1808,14 +1851,16 @@ export const paste = async (vditor: IVditor, event: (ClipboardEvent | DragEvent)
         vscodeEditorData = event.dataTransfer.getData("vscode-editor-data");
     }
 
+    const richHTMLWarning = !vscodeEditorData && isPasteHTMLDegraded(sourceHTML);
     const routed = routePasteClipboard(textHTML, textPlain, vscodeEditorData);
     textHTML = routed.textHTML;
     textPlain = routed.textPlain;
+    pasteHasFilePayload = pasteHasFilePayload || !!files?.length;
 
     // process code
     const code = processPasteCode(textHTML, textPlain, vditor.currentMode, vscodeEditorData);
     const codeElement = hasClosestByMatchTag(event.target, "CODE");
-    if (codeElement) {
+    if (codeElement && textPlain !== "") {
         // 粘贴在代码位置
         const position = getSelectPosition(event.target, vditor[vditor.currentMode].element);
         if (codeElement.parentElement.tagName !== "PRE") {
@@ -1831,9 +1876,12 @@ export const paste = async (vditor: IVditor, event: (ClipboardEvent | DragEvent)
             codeElement.parentElement.nextElementSibling.innerHTML = codeElement.outerHTML;
             processCodeRender(codeElement.parentElement.nextElementSibling as HTMLElement, vditor);
         }
+        pasteInserted = true;
+        preservePasteSource = true;
     } else if (code) {
-        pastedFromMarkdown = true;
         callback.pasteCode(code);
+        pasteInserted = true;
+        preservePasteSource = true;
     } else {
         let preparedPlain = textPlain;
         if (textPlain.trim() !== "") {
@@ -1844,6 +1892,7 @@ export const paste = async (vditor: IVditor, event: (ClipboardEvent | DragEvent)
             textHTML = "";
         }
         if (textHTML.trim() !== "") {
+            richHTMLInserted = true;
             const tempElement = document.createElement("div");
             tempElement.innerHTML = textHTML;
             tempElement.querySelectorAll("[style]").forEach((e) => {
@@ -1855,57 +1904,79 @@ export const paste = async (vditor: IVditor, event: (ClipboardEvent | DragEvent)
             if (vditor.currentMode === "ir") {
                 renderers.HTML2VditorIRDOM = { renderLinkDest };
                 vditor.lute.SetJSRenderers({ renderers });
-                insertHTML(vditor.lute.HTML2VditorIRDOM(tempElement.innerHTML), vditor);
+                const pastedDOM = restoreTableCellBreaks(vditor.lute.HTML2VditorIRDOM(tempElement.innerHTML));
+                if (pastedDOM.trim()) {
+                    insertHTML(pastedDOM, vditor);
+                    pasteInserted = true;
+                }
             } else if (vditor.currentMode === "wysiwyg") {
                 renderers.HTML2VditorDOM = { renderLinkDest };
                 vditor.lute.SetJSRenderers({ renderers });
-                insertHTML(vditor.lute.HTML2VditorDOM(tempElement.innerHTML), vditor);
+                const pastedDOM = restoreTableCellBreaks(vditor.lute.HTML2VditorDOM(tempElement.innerHTML));
+                if (pastedDOM.trim()) {
+                    insertHTML(pastedDOM, vditor);
+                    pasteInserted = true;
+                }
             }
-            markOutlineEditing(vditor);
-            vditor.outline.render(vditor);
-        } else if (files.length > 0) {
+            if (pasteInserted) {
+                markOutlineEditing(vditor);
+                vditor.outline.render(vditor);
+                preservePasteSource = true;
+            }
+        }
+        if (!pasteInserted && pasteHasFilePayload) {
+            const resolved = resolvePasteFiles(files);
+            if (resolved.invalid) {
+                showPasteError(vditor);
+                return;
+            }
             if (vditor.options.upload.url || vditor.options.upload.handler) {
-                await uploadFiles(vditor, files);
-            } else {
-                const fileReader = new FileReader();
-                let file: File;
-                if ("clipboardData" in event) {
-                    files = event.clipboardData.files;
-                    file = files[0];
-                } else if (event.dataTransfer.types.includes("Files")) {
-                    files = event.dataTransfer.items;
-                    file = files[0].getAsFile();
-                }
-                if (file && file.type.startsWith("image")) {
-                    fileReader.readAsDataURL(file);
-                    fileReader.onload = () => {
-                        let imgHTML = ''
-                        if (vditor.currentMode === "wysiwyg") {
-                            imgHTML += `<img alt="${file.name}" src="${fileReader.result.toString()}">\n`;
-                        } else {
-                            imgHTML += `![${file.name}](${fileReader.result.toString()})\n`;
-                        }
-                        document.execCommand("insertHTML", false, imgHTML);
-                    }
-                }
+                await uploadFiles(vditor, resolved.files);
+                return;
             }
-        } else if (textPlain.trim() !== "" && files.length === 0) {
-            pastedFromMarkdown = true;
+            if (!resolved.files[0].type.startsWith("image")) {
+                showPasteError(vditor);
+                return;
+            }
+            const file = resolved.files[0];
+            const fileReader = new FileReader();
+            fileReader.onerror = () => showPasteError(vditor);
+            fileReader.onload = () => {
+                if (typeof fileReader.result !== "string") {
+                    showPasteError(vditor);
+                    return;
+                }
+                let imgHTML = "";
+                if (vditor.currentMode === "wysiwyg") {
+                    imgHTML = `<img alt="${file.name}" src="${fileReader.result}">\n`;
+                } else {
+                    imgHTML = `![${file.name}](${fileReader.result})\n`;
+                }
+                document.execCommand("insertHTML", false, imgHTML);
+            };
+            fileReader.readAsDataURL(file);
+            return;
+        } else if (!pasteInserted && textPlain.trim() !== "") {
             if (vditor.currentMode === "ir") {
                 renderers.Md2VditorIRDOM = { renderLinkDest };
                 vditor.lute.SetJSRenderers({ renderers });
                 insertHTML(vditor.lute.Md2VditorIRDOM(textPlain), vditor);
+                pasteInserted = true;
             } else if (vditor.currentMode === "wysiwyg") {
                 renderers.Md2VditorDOM = { renderLinkDest };
                 vditor.lute.SetJSRenderers({ renderers });
                 insertHTML(vditor.lute.Md2VditorDOM(textPlain), vditor);
+                pasteInserted = true;
             }
-            markOutlineEditing(vditor);
-            vditor.outline.render(vditor);
+            if (pasteInserted) {
+                markOutlineEditing(vditor);
+                vditor.outline.render(vditor);
+                preservePasteSource = true;
+            }
         }
     }
     const blockElement = hasClosestBlock(getEditorRange(vditor).startContainer);
-    if (blockElement && !pastedFromMarkdown) {
+    if (blockElement && pasteInserted && !preservePasteSource) {
         // https://github.com/Vanessa219/vditor/issues/591
         const range = getEditorRange(vditor);
         vditor[vditor.currentMode].element.querySelectorAll("wbr").forEach((wbr) => {
@@ -1923,5 +1994,19 @@ export const paste = async (vditor: IVditor, event: (ClipboardEvent | DragEvent)
         .forEach((item: HTMLElement) => {
             processCodeRender(item, vditor);
         });
+    if (!pasteInserted) {
+        if (pasteHasFilePayload) {
+            showPasteError(vditor);
+        }
+        return;
+    }
     recordHistoryChange(vditor);
+    if (richHTMLWarning && richHTMLInserted) {
+        showToast(
+            vditor,
+            window.VditorI18n?.pasteRichTextWarning || "Some rich formatting was dropped while pasting.",
+            5000,
+            "warning",
+        );
+    }
 };
