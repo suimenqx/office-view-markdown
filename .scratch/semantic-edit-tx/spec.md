@@ -36,15 +36,15 @@ First acceptance slice (custom editor only): **prose → code → task → link/
 
 ## Acceptance Criteria
 
-### ui 观感约束（Studio）
+### ui 观感约束（与 ADR 0009 一一对应，Studio 锁定）
 
 Visual is **not** a new skin. Undo, dirty, and selection should feel like **one edit** across prose and embedded blocks:
 
-1. Entering/leaving a CodeMirror / task / link-HTML surface must **not** show a second competing focus ring or “mode switch” chrome that implies a second editor.
-2. After undo/redo, caret/selection lands once at a stable place—no flash of wrong block then jump, no outline-active flicker from remount.
-3. Dirty indicator and save behave as one document; remount-only work must not flicker dirty.
+1. **焦点环**：正文与内嵌块共用一套 focus token；进/出 code·task·link 时勿闪第二套环。
+2. **脏标**：一次意图最多一次 dirty 脉冲；渲染重挂 / lazy CM 不得抖 tab 圆点。
+3. **撤销观感**：Ctrl+Z 跨面回退时选区一次落稳，勿「先跳块顶再归位」。
 
-反例（一律拒）：双撤销栈靠焦点切换、渲染刷新进历史、为事务另开第二预览面、骨架/Welcome。验收只认 `office-view-markdown.markdownViewer`。
+反例（一律拒）：块内独立 undo 条、双 dirty、焦点决定历史归属的视觉暗示；为事务另开第二预览面 / Welcome。验收只认 `office-view-markdown.markdownViewer`。首验切片按 ADR 0009。
 
 ### 功能验收
 

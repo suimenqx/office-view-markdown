@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-**ui 观感：** 跨 surface 仍像同一次编辑；undo/redo 后光标一次落稳，勿闪错块再跳；进出嵌入块无第二焦点环。
+**ui 观感：** Ctrl+Z 跨面回退选区一次落稳，勿先跳块顶再归位；进出嵌入块无第二焦点环。
 
 - [ ] Prose edit → one commit / undo / dirty
 - [ ] CodeMirror code edit → same contract (not a divergent private stack for document Ctrl+Z)

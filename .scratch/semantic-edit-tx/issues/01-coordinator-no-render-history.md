@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-**ui 观感：** 事务不可见为“第二编辑器”；remount 不得闪 dirty。
+**ui 观感：** 一次意图最多一次 dirty 脉冲；渲染重挂/lazy CM 不得抖 tab 圆点。
 
 - [ ] Canonical commit path owns Markdown snapshot + dirty notification
 - [ ] Remount / lazy CM mount-teardown / diagram refresh / outline chrome: zero history, zero extra dirty

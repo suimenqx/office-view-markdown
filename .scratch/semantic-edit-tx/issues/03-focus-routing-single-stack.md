@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-**ui 观感：** 焦点进出嵌入块无“换了一套撤销”；无第二焦点环暗示第二历史。
+**ui 观感：** 正文与内嵌块共用一套 focus token；进/出勿闪第二套环；拒块内独立 undo 条与焦点暗示历史归属。
 
 - [ ] Document Ctrl+Z / redo ignores focus as ownership signal
 - [ ] No double-commit from CM sync-on-delay + sync-on-blur for one intent
