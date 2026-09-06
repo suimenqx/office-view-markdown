@@ -58,3 +58,7 @@ and the unconfigured PlantUML Actionable Empty State in one document.
 **Outline Label Truncation**:
 When an outline entry title exceeds the Outline panel width, the label is shown as a single line with an ellipsis; the full title is available on hover. The Outline panel keeps a user-resizable width with a wider default so common titles remain recognizable without sacrificing the Reading Surface.
 _Avoid_: horizontal scroll of outline labels, never-truncate full wrap as the default
+
+**Open Document Stability** (「打开即稳」):
+Opening into `office-view-markdown.markdownViewer` must satisfy ADR 0008: no half-finished first-paint flash, Editor Font Size correct on the first frame, and scroll/caret restore only after content is ready (`cacheFocus` family).
+_Avoid_: stock→product FOUC, default→override font jump, restore against half-mounted chrome
