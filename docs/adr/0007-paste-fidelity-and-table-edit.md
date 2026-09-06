@@ -1,0 +1,3 @@
+# Paste fidelity and table edit are document-integrity invariants
+
+Next polish wave prioritizes clipboard round-trip and in-table editing over open-doc flicker recovery. Three invariants gate acceptance: (1) **round-trip fidelity** — clipboard HTML/plain → document model → export preserves structure and in-cell newlines; (2) **parse options ≠ source mutation** — header/format toggles only change interpretation, never rewrite or clear the paste source; (3) **stable edit selection** — enter/leave cell and multiline edit must not swallow newlines or jump selection. Failures surface as honest paste feedback (ui), not silent corruption. Second wave remains open-doc stability (no flicker / scroll restore).
