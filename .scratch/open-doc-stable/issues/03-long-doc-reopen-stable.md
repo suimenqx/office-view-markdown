@@ -4,9 +4,9 @@
 
 **Blocked by:** 01 + 02 (uses their first-paint and restore contract)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Long fixture: reopen keeps viewport ≈ saved scroll (no obvious top flash then jump)
-- [ ] Lazy CodeMirror mount near restore target does not visibly shove scroll after settle
-- [ ] Outline/wiki `pendingFragment` open still overrides session scroll
-- [ ] Manual SMOKE-OPEN note for long doc; build + suite green
+- [x] Long fixture: reopen keeps viewport ≈ saved scroll (no obvious top flash then jump)
+- [x] Lazy CodeMirror mount near restore target does not visibly shove scroll after settle
+- [x] Outline/wiki `pendingFragment` open still overrides session scroll
+- [x] Manual SMOKE-OPEN note for long doc; build + suite green

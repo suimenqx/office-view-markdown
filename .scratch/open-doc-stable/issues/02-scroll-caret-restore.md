@@ -4,12 +4,12 @@
 
 **Blocked by:** Prefer land after or tightly with 01 so restore runs on the final chrome metrics, not a pre-font layout.
 
-**Status:** ready-for-agent
+**Status:** done
 
 **ui 观感：** 滚位/光标内容就绪后一次套上；恢复时勿闪大纲激活态。
 
-- [ ] Scroll restore on reopen (setting on or off) — after content ready
-- [ ] Caret/selection restore only when `restoreViewState` on (incl. CM block when saved as `type: "cm"`)
-- [ ] Host fallback matches contributed default `true`
-- [ ] Same-doc close/reopen in-session: stable repeatable restore
-- [ ] Unit coverage for restoreCaret true/false + scroll key round-trip; build green
+- [x] Scroll restore on reopen (setting on or off) — after content ready
+- [x] Caret/selection restore only when `restoreViewState` on (incl. CM block when saved as `type: "cm"`)
+- [x] Host fallback matches contributed default `true`
+- [x] Same-doc close/reopen in-session: stable repeatable restore
+- [x] Unit coverage for restoreCaret true/false + scroll key round-trip; build green
