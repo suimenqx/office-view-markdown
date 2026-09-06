@@ -43,3 +43,7 @@ Command Palette → `View: Reopen Editor With…` → **Office View Markdown**, 
 
 - Long: `test/markdown/LongOpen.md`
 - General chrome: `test/markdown/UxPolish.md`
+---
+## Deep scroll + reopen (GUI)
+
+If manual webview PageDown is flaky: `./test/smoke/gui-open-doc-stable.sh` → frames under `test-results/open-doc-long-before-close.png`, `open-doc-restore-f*.png`, `open-doc-long-restored.png`.
