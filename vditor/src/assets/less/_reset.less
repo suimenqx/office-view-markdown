@@ -36,10 +36,23 @@
       max-width: 36rem;
       padding: 12px 14px;
       border: 1px dashed color-mix(in srgb, var(--border-color, #d0d7de) 85%, transparent);
+      border-left: 3px solid var(--vscode-editorWarning-foreground, var(--vscode-inputValidation-warningBorder, #bf8803));
       border-radius: var(--radius);
       background: color-mix(in srgb, var(--panel-background-color, var(--bg-color, #fff)) 92%, var(--second-bg-color, #f6f8fa));
       color: var(--front-color, var(--textarea-text-color, inherit));
       line-height: 1.45;
+    }
+
+    .vditor-actionable-empty-state--info {
+      border-left-color: var(--vscode-inputValidation-infoBorder, var(--vscode-textLink-foreground, #3794ff));
+    }
+
+    .vditor-actionable-empty-state--warning {
+      border-left-color: var(--vscode-editorWarning-foreground, var(--vscode-inputValidation-warningBorder, #bf8803));
+    }
+
+    .vditor-actionable-empty-state--error {
+      border-left-color: var(--vscode-errorForeground, var(--vscode-inputValidation-errorBorder, var(--error-color, #f14c4c)));
     }
 
     .vditor-actionable-empty-state__title {

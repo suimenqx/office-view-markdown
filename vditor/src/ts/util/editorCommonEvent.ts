@@ -37,6 +37,10 @@ import {
 } from "./globalLocalStorageSettings";
 
 const markImageLoading = (img: HTMLImageElement) => {
+    // PlantUML render imgs have their own AES path in plantumlRender.
+    if (isPlantumlRenderImage(img)) {
+        return;
+    }
     enhanceImagePresentation(img);
     if (img.complete && img.naturalWidth > 0) {
         return;
@@ -56,6 +60,7 @@ const markImageLoading = (img: HTMLImageElement) => {
             title: window.VditorI18n?.actionableImageLoadFailed || "Image failed to load",
             body: window.VditorI18n?.actionableImageLoadFailedBody || "Check the image path and try again.",
             actionLabel: window.VditorI18n?.actionableRetry || "Retry",
+            variant: "error",
             onAction: () => {
                 host.remove();
                 img.removeAttribute("data-vditor-image-error");

@@ -5,7 +5,7 @@ import {resolveMermaidTheme} from "../ui/setMermaidTheme";
 import {mermaidRenderAdapter} from "./adapterRender";
 import {ensureMermaidChrome} from "./mermaidChrome";
 import {buildMermaidInitConfig, findVditorRoot} from "./mermaidTheme";
-import {renderActionableEmptyState, removeActionableEmptyState} from "../ui/actionableEmptyState";
+import {renderActionableEmptyState, removeActionableEmptyState, sanitizeActionableErrorMessage} from "../ui/actionableEmptyState";
 
 declare const mermaid: {
     initialize(options: unknown): void,
@@ -76,12 +76,14 @@ const renderSingleMermaid = async (item: HTMLElement, code: string, index: numbe
         bindFunctions?.(item);
         item.setAttribute(MERMAID_PROCESSED_ATTR, "true");
     } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : String(error);
+        const fallback = window.VditorI18n?.actionableMermaidRenderFailedBody
+            || "Check the diagram syntax and try again.";
         item.classList.add("vditor-reset--error");
         renderActionableEmptyState(item, {
             title: window.VditorI18n?.actionableMermaidRenderFailed || "Mermaid render failed",
-            body: message,
+            body: sanitizeActionableErrorMessage(error, fallback),
             actionLabel: window.VditorI18n?.actionableRetry || "Retry",
+            variant: "error",
             onAction: onRetry,
         });
         item.setAttribute(MERMAID_PROCESSED_ATTR, "true");
