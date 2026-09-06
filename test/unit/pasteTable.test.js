@@ -8,6 +8,7 @@ const root = path.join(__dirname, '..', '..');
 const outfile = path.join(os.tmpdir(), `pasteTable-test-${process.pid}.cjs`);
 
 buildSync({
+  define: { VDITOR_VERSION: JSON.stringify(require(path.join(root, 'package.json')).version) },
   entryPoints: [path.join(root, 'vditor/src/ts/util/pasteRouting.ts')],
   bundle: true,
   platform: 'node',
@@ -17,6 +18,11 @@ buildSync({
 });
 
 try {
+  // pasteRouting -> processCode pulls editor chrome; stub document for Node.
+  global.document = global.document || {
+    addEventListener() {},
+    removeEventListener() {},
+  };
   const {
     isPasteHTMLDegraded,
     restoreTableCellBreaks,

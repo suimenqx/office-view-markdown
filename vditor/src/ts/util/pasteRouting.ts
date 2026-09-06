@@ -1,4 +1,4 @@
-import { isIdeCodeHtml, isMarkdownLikePlain } from "./processCode";
+import { isIdeCodeHtml, isMarkdownLikePlain } from "./pasteDetect";
 
 const inlineHTMLTagInPlain = /<\/[a-zA-Z][\w:-]*>|<[a-zA-Z][\w:-]*(?:\s[^>]*)?\/?>/;
 
