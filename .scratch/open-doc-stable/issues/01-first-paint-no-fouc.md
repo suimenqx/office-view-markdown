@@ -6,6 +6,8 @@
 
 **Status:** ready-for-agent
 
+**ui 观感：** 宁可晚一帧完整 Reading Surface；首帧字号到位；拒骨架屏/Welcome/第二预览。
+
 - [ ] Light/Dark(/HC): first visible frame matches resolved editor theme (not stock default then jump) — 首屏不闪
 - [ ] Editor Font Size (follow `editor.fontSize` or explicit 12–28) applied on first frame — 字号一次到位
 - [ ] No empty/`#vditor` stock chrome flash on cold open

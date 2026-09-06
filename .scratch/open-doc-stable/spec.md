@@ -41,6 +41,17 @@ Scroll always restores; caret/selection restore when `office-view-markdown.resto
 
 ## Acceptance Criteria
 
+### ui 观感约束（与 ADR 0008 一一对应，Studio 锁定）
+
+1. **首屏**：宁可晚一帧完整 Reading Surface，不要半成品 chrome→正文再跳。
+2. **字号**：首帧即 `editorFontSize`，禁止 default→override 肉眼跳动。
+3. **恢复**：滚位/光标在内容就绪后一次套上；恢复过程勿再闪大纲激活态。
+
+反例（一律拒）：骨架屏假装成正文、打开闪 Welcome、为稳另开第二预览面。验收只认 `office-view-markdown.markdownViewer`。
+
+### 功能验收
+
+
 Lead with ADR 0008 invariants (custom editor only — `office-view-markdown.markdownViewer`; stock Markdown does not count):
 
 1. **首屏不闪** — Open MD via custom editor: no visible flash of half-finished / stock/empty Vditor layout or wrong theme (Light/Dark(/HC) smoke).

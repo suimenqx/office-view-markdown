@@ -6,6 +6,8 @@
 
 **Status:** ready-for-agent
 
+**ui 观感：** 滚位/光标内容就绪后一次套上；恢复时勿闪大纲激活态。
+
 - [ ] Scroll restore on reopen (setting on or off) — after content ready
 - [ ] Caret/selection restore only when `restoreViewState` on (incl. CM block when saved as `type: "cm"`)
 - [ ] Host fallback matches contributed default `true`
