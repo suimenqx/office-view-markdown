@@ -1,0 +1,3 @@
+# CONTEXT — caret-continuity
+
+**Document position** = logical caret/selection identity for every editable block and inline object; mapped to DOM Range or CodeMirror offsets only at the interaction edge. **One focus token** when crossing prose ↔ CM / special blocks — no surface-selection + inner CM ring stack. **Viewport follows selection once** on Arrow/Home/End across boundaries — no jump-to-block-top then rehome. Cross-surface highlight stays one family. Surface under test: `office-view-markdown.markdownViewer` only. Lead ADR: **0010**. Done upstream: semantic tx (ADR 0009), open-doc (ADR 0008). Consumers later: FindBar (position contract only; no rewrite here).
