@@ -4,9 +4,7 @@ import { Compartment, EditorSelection, Prec } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 
 import { expandMarker } from "../ir/expandMarker";
-import { processAfterRender, recordHistory as recordIrHistory } from "../ir/process";
 import { Constants } from "../constants";
-import { recordHistory as recordWysiwygHistory } from "../wysiwyg/afterRenderEvent";
 import {
     getEditorRange,
     preserveEditorScroll,
@@ -16,7 +14,11 @@ import {
     setSelectionFocus,
 } from "../util/selection";
 import { isOpenDocumentRestoring } from "../util/documentState";
-import { afterRenderEvent } from "../wysiwyg/afterRenderEvent";
+import {
+    commitAuthoredEdit,
+    flushScheduledAuthoredEdit,
+    scheduleAuthoredEdit,
+} from "../util/editTransaction";
 import {
     ensureCodeBlockChrome,
     removeCodeBlockChrome,
@@ -729,31 +731,7 @@ const exitSpecialBlockEdit = (vditor: IVditor, blockElement: HTMLElement) => {
     if (isMathBlockElement(blockElement)) {
         ensureMathBlockPreviewMode(blockElement);
     }
-    if (vditor.currentMode === "wysiwyg") {
-        clearTimeout(vditor.wysiwyg.afterRenderTimeoutId);
-        recordWysiwygHistory(vditor, {
-            enableAddUndoStack: true,
-            enableHint: false,
-            enableInput: true,
-        });
-        afterRenderEvent(vditor, {
-            enableAddUndoStack: false,
-            enableHint: false,
-            enableInput: true,
-        });
-    } else if (vditor.currentMode === "ir") {
-        clearTimeout(vditor.ir.processTimeoutId);
-        recordIrHistory(vditor, {
-            enableAddUndoStack: true,
-            enableHint: false,
-            enableInput: true,
-        });
-        processAfterRender(vditor, {
-            enableAddUndoStack: false,
-            enableHint: false,
-            enableInput: true,
-        });
-    }
+    flushScheduledAuthoredEdit(vditor, { intent: "specialBlock" });
 };
 
 /** 数学公式 / Mermaid / PlantUML：CodeMirror 在上、预览在下，编辑时实时重绘 */
@@ -782,24 +760,12 @@ export const enterSpecialBlockEdit = (vditor: IVditor, blockElement: HTMLElement
     return true;
 };
 
-const syncRenderOptions = {
-    enableAddUndoStack: false,
-    enableHint: false,
-    enableInput: true,
+const scheduleSync = (_binding: CodeMirrorBinding, vditor: IVditor) => {
+    // ADR 0009: one CM intent → one scheduled outer commit (blur flushes; fingerprint dedupes).
+    scheduleAuthoredEdit(vditor, { intent: "code" });
 };
 
-const scheduleSync = (binding: CodeMirrorBinding, vditor: IVditor) => {
-    window.clearTimeout(binding.syncTimer);
-    binding.syncTimer = window.setTimeout(() => {
-        if (vditor.currentMode === "wysiwyg") {
-            afterRenderEvent(vditor, syncRenderOptions);
-        } else if (vditor.currentMode === "ir") {
-            processAfterRender(vditor, syncRenderOptions);
-        }
-    }, vditor.options.undoDelay);
-};
-
-/** 离开 CodeMirror 时将代码块变更合并入 Vditor 外部撤销栈 */
+/** 离开 CodeMirror 时将代码块变更合并入 Vditor 外部撤销栈（ADR 0009 单次提交） */
 export const flushCodeMirrorExternalUndo = (vditor: IVditor) => {
     if (isInsideCodeMirror(document.activeElement)) {
         return;
@@ -817,18 +783,7 @@ export const flushCodeMirrorExternalUndo = (vditor: IVditor) => {
         window.clearTimeout(binding.previewTimer);
         binding.syncCode.textContent = binding.view.state.doc.toString();
     }
-    const recordOptions = {
-        enableAddUndoStack: true,
-        enableHint: false,
-        enableInput: true,
-    };
-    if (vditor.currentMode === "wysiwyg") {
-        clearTimeout(vditor.wysiwyg.afterRenderTimeoutId);
-        recordWysiwygHistory(vditor, recordOptions);
-    } else if (vditor.currentMode === "ir") {
-        clearTimeout(vditor.ir.processTimeoutId);
-        recordIrHistory(vditor, recordOptions);
-    }
+    flushScheduledAuthoredEdit(vditor, { intent: "code" });
 };
 
 export const getActiveCodeMirrorView = (): EditorView | undefined => {
@@ -1329,23 +1284,7 @@ export const removeCmCodeBlock = (vditor: IVditor, blockElement: HTMLElement) =>
         setSelectionFocus(range);
     }
 
-    if (vditor.currentMode === "wysiwyg") {
-        clearTimeout(vditor.wysiwyg.afterRenderTimeoutId);
-        vditor.undo.addToUndoStack(vditor);
-        afterRenderEvent(vditor, {
-            enableAddUndoStack: false,
-            enableHint: false,
-            enableInput: true,
-        });
-    } else if (vditor.currentMode === "ir") {
-        clearTimeout(vditor.ir.processTimeoutId);
-        vditor.undo.addToUndoStack(vditor);
-        processAfterRender(vditor, {
-            enableAddUndoStack: false,
-            enableHint: false,
-            enableInput: true,
-        });
-    }
+    commitAuthoredEdit(vditor, { intent: "code" });
 };
 
 export const destroyAllCodeMirrors = (vditor: IVditor) => {

@@ -1,13 +1,10 @@
 import {diff_match_patch, patch_obj} from "diff-match-patch";
 import {
-    canRedoActiveCodeMirror,
-    canUndoActiveCodeMirror,
     deactivateAllCodeMirrors,
     isInsideCodeMirror,
-    redoActiveCodeMirror,
     remountCodeMirrorsAfterDomReplace,
-    undoActiveCodeMirror,
 } from "../codeBlock/codeMirrorManager";
+import { invalidateCommitFingerprint } from "../util/editTransactionState";
 import {disableToolbar, enableToolbar, hidePanel} from "../toolbar/setToolbar";
 import {isFirefox, isSafari} from "../util/compatibility";
 import {execAfterRender} from "../util/fixBrowserBehavior";
@@ -37,6 +34,7 @@ class Undo {
 
     public clearStack(vditor: IVditor) {
         this.resetStack();
+        invalidateCommitFingerprint(vditor);
         this.resetIcon(vditor);
     }
 
@@ -45,13 +43,13 @@ class Undo {
             return;
         }
 
-        if (this[vditor.currentMode].undoStack.length > 1 || canUndoActiveCodeMirror()) {
+        if (this[vditor.currentMode].undoStack.length > 1) {
             enableToolbar(vditor.toolbar.elements, ["undo"]);
         } else {
             disableToolbar(vditor.toolbar.elements, ["undo"]);
         }
 
-        if (this[vditor.currentMode].redoStack.length !== 0 || canRedoActiveCodeMirror()) {
+        if (this[vditor.currentMode].redoStack.length !== 0) {
             enableToolbar(vditor.toolbar.elements, ["redo"]);
         } else {
             disableToolbar(vditor.toolbar.elements, ["redo"]);
@@ -62,11 +60,7 @@ class Undo {
         if (vditor[vditor.currentMode].element.getAttribute("contenteditable") === "false") {
             return;
         }
-        if (isInsideCodeMirror(document.activeElement)) {
-            undoActiveCodeMirror();
-            this.resetIcon(vditor);
-            return;
-        }
+        // ADR 0009: document Ctrl+Z ignores focus — single outer semantic stack.
         if (this[vditor.currentMode].undoStack.length < 2) {
             return;
         }
@@ -85,11 +79,7 @@ class Undo {
         if (vditor[vditor.currentMode].element.getAttribute("contenteditable") === "false") {
             return;
         }
-        if (isInsideCodeMirror(document.activeElement)) {
-            redoActiveCodeMirror();
-            this.resetIcon(vditor);
-            return;
-        }
+        // ADR 0009: document redo ignores focus — single outer semantic stack.
         const state = this[vditor.currentMode].redoStack.pop();
         if (!state) {
             return;
@@ -193,6 +183,7 @@ class Undo {
         }
 
         this[vditor.currentMode].lastText = text;
+        invalidateCommitFingerprint(vditor);
         if (vditor.currentMode === "wysiwyg" || vditor.currentMode === "ir") {
             deactivateAllCodeMirrors(vditor);
         }

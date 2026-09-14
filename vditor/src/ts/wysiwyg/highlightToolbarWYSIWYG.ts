@@ -39,6 +39,7 @@ import {updateBlockHandle} from "./blockHandle";
 import {updateTableHandle} from "./tableHandle";
 import {resolveAdjacentElementFromRange} from "../util/rangeAdjacentElement";
 import {normalizeLinkDestInput} from "../util/linkDest";
+import {commitAuthoredEdit} from "../util/editTransaction";
 
 export const hideLinkPopover = (vditor: IVditor) => {
     if (vditor.currentMode === "wysiwyg" || vditor.currentMode === "ir") {
@@ -478,13 +479,7 @@ export const genLinkRefPopover = (vditor: IVditor, linkRefElement: HTMLElement) 
         range.setStartAfter(focusNode);
         range.collapse(true);
         setSelectionFocus(range);
-        clearTimeout(vditor.wysiwyg.afterRenderTimeoutId);
-        vditor.undo.addToUndoStack(vditor);
-        afterRenderEvent(vditor, {
-            enableAddUndoStack: false,
-            enableHint: false,
-            enableInput: true,
-        });
+        commitAuthoredEdit(vditor, { intent: "linkHtml" });
         highlightToolbarWYSIWYG(vditor);
     };
 
@@ -646,13 +641,7 @@ export const genAPopover = (vditor: IVditor, aElement: HTMLElement) => {
         range.setStartAfter(focusNode);
         range.collapse(true);
         setSelectionFocus(range);
-        clearTimeout(vditor.wysiwyg.afterRenderTimeoutId);
-        vditor.undo.addToUndoStack(vditor);
-        afterRenderEvent(vditor, {
-            enableAddUndoStack: false,
-            enableHint: false,
-            enableInput: true,
-        });
+        commitAuthoredEdit(vditor, { intent: "linkHtml" });
         highlightToolbarWYSIWYG(vditor);
     };
 
@@ -757,13 +746,7 @@ export const genImagePopoverForElement = (vditor: IVditor, imgElement: HTMLImage
         range.collapse(true);
         imgElement.remove();
         setSelectionFocus(range);
-        clearTimeout(vditor.wysiwyg.afterRenderTimeoutId);
-        vditor.undo.addToUndoStack(vditor);
-        afterRenderEvent(vditor, {
-            enableAddUndoStack: false,
-            enableHint: false,
-            enableInput: true,
-        });
+        commitAuthoredEdit(vditor, { intent: "linkHtml" });
         highlightToolbarWYSIWYG(vditor);
     };
 

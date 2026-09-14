@@ -5,9 +5,8 @@ import { EditorView, keymap } from "@codemirror/view";
 import { getModeEditorElement, getModePopover } from "./codeBlockLanguagePopover";
 import { loadCodeMirrorHighlightLanguage } from "./codeBlockHighlightLanguages";
 import { stopHandledCodeMirrorKeymap, vditorCodeMirrorSetup } from "./codeMirrorSetup";
-import { processAfterRender } from "../ir/process";
 import { formatAltEnterHotkeyTip } from "../util/compatibility";
-import { afterRenderEvent } from "../wysiwyg/afterRenderEvent";
+import { commitAuthoredEdit } from "../util/editTransaction";
 
 const FRONT_MATTER_POPOVER_CLASS = "vditor-popover--front-matter";
 const FRONT_MATTER_PANEL_CLASS = "vditor-panel--front-matter";
@@ -49,11 +48,7 @@ const spinFrontMatterBlock = (vditor: IVditor, blockElement: HTMLElement) => {
 };
 
 const notifyAfterFrontMatterChange = (vditor: IVditor) => {
-    if (vditor.currentMode === "ir") {
-        processAfterRender(vditor);
-        return;
-    }
-    afterRenderEvent(vditor);
+    commitAuthoredEdit(vditor, { intent: "specialBlock" });
 };
 
 const destroyFrontMatterCodeMirror = () => {
@@ -316,7 +311,6 @@ export const showFrontMatterEditorPopover = (vditor: IVditor, blockElement: HTML
 
     const save = () => {
         const yaml = (activeFrontMatterPopover?.view.state.doc.toString() ?? initialSource).trimEnd();
-        vditor.undo.addToUndoStack(vditor);
         applyYamlToBlock(vditor, blockRef, yaml);
         notifyAfterFrontMatterChange(vditor);
         hideFrontMatterEditorPopover(vditor);

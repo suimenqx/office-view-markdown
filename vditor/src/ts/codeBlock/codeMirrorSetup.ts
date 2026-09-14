@@ -20,6 +20,26 @@ export const stopHandledCodeMirrorKeymap = (bindings: readonly KeyBinding[]) =>
         stopPropagation: true,
     }));
 
+/** Document-level undo/redo keys — owned by ADR 0009 outer stack, not CM. */
+const DOCUMENT_HISTORY_KEYS = new Set([
+    "Mod-z",
+    "Mod-Z",
+    "Mod-y",
+    "Mod-Y",
+    "Mod-Shift-z",
+    "Mod-Shift-Z",
+]);
+
+const isDocumentHistoryBinding = (binding: KeyBinding) => {
+    const keys = [binding.key, binding.mac, binding.win, binding.linux]
+        .filter(Boolean)
+        .map((k) => String(k));
+    return keys.some((k) => DOCUMENT_HISTORY_KEYS.has(k));
+};
+
+/** Keep CM history() for ephemeral intra-block soft-undo only; do not steal Ctrl/Cmd+Z. */
+export const vditorLocalHistoryKeymap = historyKeymap.filter((binding) => !isDocumentHistoryBinding(binding));
+
 /** basicSetup without defaultHighlightStyle — layout in _codemirror.less, colors via CSS variables / theme files */
 export const vditorCodeMirrorSetup = [
     highlightSpecialChars(),
@@ -39,7 +59,7 @@ export const vditorCodeMirrorSetup = [
     keymap.of(stopHandledCodeMirrorKeymap([
         ...closeBracketsKeymap,
         ...defaultKeymap,
-        ...historyKeymap,
+        ...vditorLocalHistoryKeymap,
         ...completionKeymap,
     ])),
 ];

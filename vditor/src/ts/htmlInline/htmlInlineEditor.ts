@@ -16,8 +16,7 @@ import {
     HTML_EDITOR_LINE_WRAP_KEY,
     setGlobalLocalStorageSetting,
 } from "../util/globalLocalStorageSettings";
-import { afterRenderEvent } from "../wysiwyg/afterRenderEvent";
-import { processAfterRender } from "../ir/process";
+import { commitAuthoredEdit } from "../util/editTransaction";
 import { telemetry } from "../util/telemetry";
 
 const HTML_EDITOR_POPOVER_CLASS = "vditor-popover--html-inline";
@@ -249,11 +248,7 @@ const closeHtmlEditorPopover = (
 };
 
 const notifyAfterHtmlEditorChange = (vditor: IVditor) => {
-    if (vditor.currentMode === "ir") {
-        processAfterRender(vditor);
-        return;
-    }
-    afterRenderEvent(vditor);
+    commitAuthoredEdit(vditor, { intent: "linkHtml" });
 };
 
 const renderHtmlInlineFromMd = (vditor: IVditor, md: string): string => {
@@ -515,7 +510,6 @@ export const showHtmlEditorPopover = (vditor: IVditor, target: HtmlEditTarget) =
         const newMd = (activeHtmlEditorPopover?.view.state.doc.toString() ?? initialSource).trim();
         const htmlType = targetRef.anchorElement.getAttribute("data-type") === "html-block" ? "block" : "inline";
         telemetry(vditor, "markdown.html.save", { type: htmlType, isEmpty: !newMd });
-        vditor.undo.addToUndoStack(vditor);
         if (!newMd) {
             const parent = targetRef.focusElement.parentElement;
             const next = targetRef.focusElement.nextSibling;

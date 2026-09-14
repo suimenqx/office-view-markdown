@@ -31,6 +31,7 @@ import {
 import { clickToc, scheduleRenderToc } from "../util/toc";
 import { scheduleHighlightToolbar } from "../util/highlightToolbar";
 import { afterRenderEvent } from "./afterRenderEvent";
+import { commitAuthoredEdit } from "../util/editTransaction";
 import {
     genAPopover,
     genImagePopover,
@@ -393,7 +394,7 @@ class WYSIWYG {
                     checkElement.removeAttribute("checked");
                 }
                 this.preventInput = true;
-                afterRenderEvent(vditor);
+                commitAuthoredEdit(vditor, { intent: "task" });
                 return;
             }
 

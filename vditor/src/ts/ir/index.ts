@@ -43,6 +43,7 @@ import { highlightToolbarIR } from "./highlightToolbarIR";
 import { scheduleHighlightToolbar } from "../util/highlightToolbar";
 import { input } from "./input";
 import { processAfterRender, processHint } from "./process";
+import { commitAuthoredEdit } from "../util/editTransaction";
 import { initBlockHandle } from "../wysiwyg/blockHandle";
 import { initTableHandle } from "../wysiwyg/tableHandle";
 
@@ -202,7 +203,7 @@ class IR {
                     event.target.removeAttribute("checked");
                 }
                 this.preventInput = true;
-                processAfterRender(vditor);
+                commitAuthoredEdit(vditor, { intent: "task" });
                 return;
             }
 
