@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-**ui 观感：** Replace 后选区一次落稳；一次命令一次 dirty/undo 脉冲；勿因挂载或分面写入抖计数。
+**ui 观感：** Replace 走 0009 一次 dirty/undo；跳转落稳同 Find。
 
 - [ ] Replace Current: one ADR 0009 undo unit; position restore via ADR 0010
 - [ ] Replace All: one ADR 0009 undo unit for the command; count/index stay coherent

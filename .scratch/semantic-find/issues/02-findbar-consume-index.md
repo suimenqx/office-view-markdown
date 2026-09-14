@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-**ui 观感：** 复用现有 FindBar；theme-affine 命中高亮 + 诚实计数。Awaiting ui Studio notes; implement provisionally per spec.
+**ui 观感：** 高亮同族；Find Next/点选一次落稳（ADR 0010 文档位）。
 
 - [ ] FindBar consumes document index; single honest match count
 - [ ] Find Next / Previous across prose + inline + embedded code/math

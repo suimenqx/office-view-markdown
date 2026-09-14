@@ -43,19 +43,13 @@ First acceptance surface: custom editor only — `office-view-markdown.markdownV
 
 ## Acceptance Criteria
 
-### ui 观感约束（与 ADR 0011；Studio 待补）
+### ui 观感约束（与 ADR 0011 一一对应，Studio 锁定）
 
-Visual is **not** a new Find skin. Reuse existing FindBar chrome. Provisional until ui Studio notes land:
+1. **高亮同族**：命中高亮与现有选区/主题同族（theme-affine），勿 prose 系统蓝 + CM 另一色。
+2. **计数诚实**：Find 计数 = 权威文档流命中数；挂载块展示命中不得改计数。
+3. **跳转一次落稳**：Find Next / 点选命中 → 视口与选区一次落到源范围（经 ADR 0010 文档位），勿先跳块顶再归位。
 
-> **Awaiting ui Studio notes; implement with theme-affine match highlight and honest match count.**
-
-Provisional checklist (refine when Studio replies):
-
-1. **Match highlight**：命中高亮与主题同族（Light/Dark(/HC) 可读）；拒系统蓝 vs 主题色分裂式双轨高亮。
-2. **Honest count**：计数 = 将导航访问的文档级命中总数；拒 DOM 计数与 CM 计数分列或因挂载变化。
-3. **Chrome reuse**：沿用现有 FindBar；拒为本波另开第二查找皮 / Welcome / 第二预览面。
-
-反例（一律拒）：FindBar 换皮当产品目标；为找词另开第二预览；验收面离开 `markdownViewer`。
+反例（一律拒）：DOM+CM 两套计数、为 Find 单开新皮肤、Replace 绕开 ADR 0009 事务。验收只认 `office-view-markdown.markdownViewer`。
 
 ### 功能验收
 

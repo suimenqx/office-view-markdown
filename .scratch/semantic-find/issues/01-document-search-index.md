@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-**ui 观感：** 诚实命中集合是计数与高亮的唯一来源；挂载不得改结果集。观感细则 awaiting ui Studio notes（theme-affine highlight + honest count）。
+**ui 观感：** 计数诚实——索引命中数 = Find 展示计数；挂载不得改集。
 
 - [ ] Authored-stream index covers prose, cross-inline markup, embedded code/math source ranges
 - [ ] Presentation chrome / hidden / aria-hidden excluded by policy
