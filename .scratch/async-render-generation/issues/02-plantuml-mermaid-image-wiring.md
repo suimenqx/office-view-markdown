@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-**ui 观感：** 主题切换 / 块重挂载中途无旧图闪一下；三路径同一套代际语义，勿 Mermaid 有守卫、PlantUML 仍闭包写回。
+**ui 观感：** 三态互斥——loading/ready/error 不叠层。
 
 - [ ] Mermaid render path commits only under current generation guard
 - [ ] PlantUML render path commits only under current generation guard

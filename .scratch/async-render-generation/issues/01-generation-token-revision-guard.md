@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-**ui 观感：** 无陈旧闪现——代际切换先丢弃旧 chrome，再提交新结果；loading/ready/error 互斥。
+**ui 观感：** 过期不闪——世代过期结果不得写入表面。
 
 - [ ] Tuple `(block identity, source revision, theme/config)` owned per render request
 - [ ] Async commit gated on tuple still-current + host connected

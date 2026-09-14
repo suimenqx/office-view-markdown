@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-**ui 观感：** Retry 跟当前源；失败态仍是 AES（ADR 0003），勿换新空态皮；渲染不抢焦点、不进 undo。
+**ui 观感：** 不抢焦点锚；不进 undo；AES 不变。
 
 - [ ] Retry re-reads current source + current theme/config (not closed-over snapshot)
 - [ ] AES contract unchanged (ADR 0003): Open Settings / Retry family and copy

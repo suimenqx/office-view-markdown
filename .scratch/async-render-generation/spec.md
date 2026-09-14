@@ -45,11 +45,11 @@ First acceptance surface: custom editor only — `office-view-markdown.markdownV
 
 ### ui 观感约束（与 ADR 0013 一一对应，Studio 锁定）
 
-1. **无陈旧闪现**：源已改 / 主题已换时，勿先闪旧 SVG/img 再换新图。
-2. **世代无闪烁**：loading → ready / error 互斥；代际切换一次落稳，勿双层 chrome 叠闪。
-3. **Retry 跟当前源**：失败态 Retry 读当前源与当前 theme/config，勿闭包快照。
+1. **三态互斥**：loading / ready / error 同时只见一种；切换不叠旧图与 AES。
+2. **过期不闪**：源已改或世代过期时，陈旧 SVG/img/error 不得闪一下再被替换。
+3. **不抢焦点锚**：异步完成不抢 ADR 0010 焦点锚；不进 undo（ADR 0009）。
 
-反例（一律拒）：过期异步写回、Retry 重放旧源、渲染进 undo、渲染抢焦点锚、改 AES/默认公网 PlantUML。验收只认 `office-view-markdown.markdownViewer`。
+反例（一律拒）：慢请求回来盖掉新源、loading 与图叠两层、完成时光标跳走。AES 合同（ADR 0003）不变。验收只认 `office-view-markdown.markdownViewer`。
 
 ### 功能验收
 
