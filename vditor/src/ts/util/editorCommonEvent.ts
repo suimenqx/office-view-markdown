@@ -23,7 +23,12 @@ import { saveCacheFocus } from "./cacheFocus";
 import { clearActiveHeadingMarker } from "./updateActiveHeadingMarker";
 import { handleAutoSymbolPair } from "./autoSymbol";
 import { handleVscodeShortcut } from "./vscodeShortcut";
-import { renderActionableEmptyState } from "../ui/actionableEmptyState";
+import { renderActionableEmptyState, removeActionableEmptyState } from "../ui/actionableEmptyState";
+import {
+    beginAsyncRenderGeneration,
+    canCommitAsyncRender,
+    fingerprintThemeConfig,
+} from "./asyncRenderGeneration";
 import { enhanceImagePresentation } from "../preview/imageFigure";
 import { enhanceTablePresentation } from "../preview/tableWrapper";
 import {
@@ -36,20 +41,51 @@ import {
     stepEditorFontSize,
 } from "./globalLocalStorageSettings";
 
+const clearImageErrorChrome = (img: HTMLImageElement) => {
+    const next = img.nextElementSibling;
+    if (next && next.classList.contains("vditor-image-error-state")) {
+        removeActionableEmptyState(next);
+        next.remove();
+    }
+    img.removeAttribute("data-vditor-image-error");
+    img.style.removeProperty("display");
+};
+
 const markImageLoading = (img: HTMLImageElement) => {
     // PlantUML render imgs have their own AES path in plantumlRender.
     if (isPlantumlRenderImage(img)) {
         return;
     }
     enhanceImagePresentation(img);
+    const source = img.getAttribute("src") || "";
+    if (!source) {
+        return;
+    }
+    // New generation owns this img; dispose prior AES/loading chrome (三态互斥).
+    clearImageErrorChrome(img);
+    const generation = beginAsyncRenderGeneration(
+        img,
+        source,
+        fingerprintThemeConfig("image"),
+    );
     if (img.complete && img.naturalWidth > 0) {
+        img.removeAttribute("data-loading");
         return;
     }
     img.setAttribute("data-loading", "");
-    const clear = () => img.removeAttribute("data-loading");
-    img.addEventListener("load", clear, { once: true });
+    const clearLoading = () => {
+        if (!canCommitAsyncRender(generation, img)) {
+            return;
+        }
+        img.removeAttribute("data-loading");
+    };
+    img.addEventListener("load", clearLoading, { once: true });
     img.addEventListener("error", () => {
-        clear();
+        if (!canCommitAsyncRender(generation, img)) {
+            return;
+        }
+        img.removeAttribute("data-loading");
+        clearImageErrorChrome(img);
         const host = document.createElement("span");
         host.className = "vditor-image-error-state";
         host.setAttribute("data-vditor-generated", "true");
@@ -62,13 +98,14 @@ const markImageLoading = (img: HTMLImageElement) => {
             actionLabel: window.VditorI18n?.actionableRetry || "Retry",
             variant: "error",
             onAction: () => {
+                // Ticket 03: re-read current src at click time — no closed-over snapshot.
                 host.remove();
                 img.removeAttribute("data-vditor-image-error");
                 img.style.removeProperty("display");
-                const source = img.getAttribute("src");
-                if (source) {
+                const current = img.getAttribute("src");
+                if (current) {
                     img.removeAttribute("src");
-                    img.setAttribute("src", source);
+                    img.setAttribute("src", current);
                     markImageLoading(img);
                 }
             },

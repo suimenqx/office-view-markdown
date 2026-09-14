@@ -4,15 +4,15 @@
 
 **Blocked by:** Prefer land with or after 01 (guard) and alongside 02 (paths that own Retry).
 
-**Status:** ready-for-agent
+**Status:** done
 
 **ui 观感：** 不抢焦点锚；不进 undo；AES 不变。
 
-- [ ] Retry re-reads current source + current theme/config (not closed-over snapshot)
-- [ ] AES contract unchanged (ADR 0003): Open Settings / Retry family and copy
-- [ ] No default public PlantUML server / silent probing (ADRs 0001–0002)
-- [ ] Render commit / dispose / Retry invent no ADR 0009 undo/dirty
-- [ ] Render transitions do not steal ADR 0010 focus anchors
-- [ ] Unit + SMOKE: Retry-after-edit uses new source; AES still actionable; build green
+- [x] Retry re-reads current source + current theme/config (not closed-over snapshot)
+- [x] AES contract unchanged (ADR 0003): Open Settings / Retry family and copy
+- [x] No default public PlantUML server / silent probing (ADRs 0001–0002)
+- [x] Render commit / dispose / Retry invent no ADR 0009 undo/dirty
+- [x] Render transitions do not steal ADR 0010 focus anchors
+- [x] Unit + SMOKE: Retry-after-edit uses new source; AES still actionable; build green
 
 ## Comments

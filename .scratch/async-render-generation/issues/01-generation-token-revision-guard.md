@@ -4,14 +4,14 @@
 
 **Blocked by:** None (can start after product lock); coordinate with 02/03 so PlantUML/Mermaid/image wiring and Retry land on the same guard.
 
-**Status:** ready-for-agent
+**Status:** done
 
 **ui 观感：** 过期不闪——世代过期结果不得写入表面。
 
-- [ ] Tuple `(block identity, source revision, theme/config)` owned per render request
-- [ ] Async commit gated on tuple still-current + host connected
-- [ ] Prior generation disposable; no duplicate lifecycle chrome
-- [ ] Commit / dispose do not invent undo or steal focus anchor
-- [ ] Unit coverage for allow/deny commit + connected check; build green
+- [x] Tuple `(block identity, source revision, theme/config)` owned per render request
+- [x] Async commit gated on tuple still-current + host connected
+- [x] Prior generation disposable; no duplicate lifecycle chrome
+- [x] Commit / dispose do not invent undo or steal focus anchor
+- [x] Unit coverage for allow/deny commit + connected check; build green
 
 ## Comments

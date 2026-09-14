@@ -4,14 +4,14 @@
 
 **Blocked by:** Prefer land with or after 01 (needs generation token / revision guard).
 
-**Status:** ready-for-agent
+**Status:** done
 
 **ui 观感：** 三态互斥——loading/ready/error 不叠层。
 
-- [ ] Mermaid render path commits only under current generation guard
-- [ ] PlantUML render path commits only under current generation guard
-- [ ] Image load path commits only under current generation guard
-- [ ] Theme refresh / remount invalidates superseded in-flight results
-- [ ] Manual SMOKE note + build/suite green
+- [x] Mermaid render path commits only under current generation guard
+- [x] PlantUML render path commits only under current generation guard
+- [x] Image load path commits only under current generation guard
+- [x] Theme refresh / remount invalidates superseded in-flight results
+- [x] Manual SMOKE note + build/suite green
 
 ## Comments
