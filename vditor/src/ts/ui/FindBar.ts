@@ -24,6 +24,10 @@ import {
     scrollCaretIntoEditorView,
     setSelectionFocusWithAffinity,
 } from "../util/selection";
+import {
+    isFindFieldFocused,
+    shouldStealEditorFocusForMatch,
+} from "../util/findFocus";
 
 const HIGHLIGHT_CLASS = "vditor-find-highlight";
 const CURRENT_CLASS = "vditor-find-highlight--current";
@@ -193,6 +197,7 @@ export class FindBar {
         });
 
         this.input.addEventListener("keydown", (e) => {
+            e.stopPropagation();
             if (e.isComposing) {
                 return;
             }
@@ -203,8 +208,10 @@ export class FindBar {
                 this.hide();
             }
         });
+        this.input.addEventListener("keypress", (e) => e.stopPropagation());
 
         this.replaceInput.addEventListener("keydown", (e) => {
+            e.stopPropagation();
             if (e.key === "Enter") {
                 e.preventDefault();
                 if (e.shiftKey) {
@@ -216,6 +223,7 @@ export class FindBar {
                 this.hide();
             }
         });
+        this.replaceInput.addEventListener("keypress", (e) => e.stopPropagation());
 
         document.addEventListener("keydown", (e) => {
             if (e.key !== "Escape" || !this.isVisible()) {
@@ -494,6 +502,13 @@ export class FindBar {
         }, 0);
     }
 
+    private shouldStealEditorFocusForMatch() {
+        return shouldStealEditorFocusForMatch(
+            isFindFieldFocused(document.activeElement, this.input, this.replaceInput),
+            this.findComposing,
+        );
+    }
+
     private scheduleRefresh() {
         if (this.refreshScheduled || this.suppressRefresh || !this.isVisible()) {
             return;
@@ -708,12 +723,13 @@ export class FindBar {
     private updateCurrent() {
         const currentMatch = this.currentIndex >= 0 ? this.matches[this.currentIndex] : undefined;
         const rendered = currentMatch ? this.getRenderedSegment(currentMatch) : undefined;
-        if (currentMatch && rendered?.kind === "code") {
+        const mayStealEditorFocus = this.shouldStealEditorFocusForMatch();
+        if (currentMatch && rendered?.kind === "code" && mayStealEditorFocus) {
             this.ensureCodeMirrorMatchView(currentMatch);
         }
         this.renderDomHighlights();
         this.updateCodeMirrorDecorations();
-        if (currentMatch && rendered?.kind === "prose") {
+        if (currentMatch && rendered?.kind === "prose" && mayStealEditorFocus) {
             const range = this.getProseMatchRange(currentMatch);
             const editor = this.getEditorRoot();
             if (range && editor) {
@@ -734,7 +750,7 @@ export class FindBar {
                     scrollCaretIntoEditorView(this.vditor, range);
                 }
             }
-        } else if (currentMatch && rendered?.kind === "code") {
+        } else if (currentMatch && rendered?.kind === "code" && mayStealEditorFocus) {
             this.scheduleRestoreFindFocus();
         }
     }
@@ -910,27 +926,27 @@ export class FindBar {
         this.element.style.display = "flex";
         this.setReplaceExpanded(false);
         this.activeFindField = this.input;
+        if (shouldFocusInput) {
+            this.focusInput();
+        }
         this.bindEditorRefresh();
         if (this.input.value.trim()) {
             this.search();
         } else {
             this.updateCount();
-        }
-        if (shouldFocusInput) {
-            this.focusInput();
         }
     }
 
     public showReplace() {
         this.element.style.display = "flex";
+        this.setReplaceExpanded(true);
+        this.focusReplaceInput();
         this.bindEditorRefresh();
         if (this.input.value.trim()) {
             this.search();
         } else {
             this.updateCount();
         }
-        this.setReplaceExpanded(true);
-        this.focusInput();
     }
 
     public hide() {

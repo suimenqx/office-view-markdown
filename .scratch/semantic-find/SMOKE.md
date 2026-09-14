@@ -7,6 +7,12 @@ preview or Find UI.
 
 ## Sequence
 
+0. **Find typing isolation (Light)** — Focus the existing FindBar query field and
+   type a query rapidly, including a query whose current match is in a fenced
+   code block. Focus stays in FindBar, the caret/selection stays in the query
+   field, CodeMirror does not steal focus, and no typed character is added to
+   the authored Markdown body. Repeat with the Replace field. Capture the
+   FindBar and unchanged body in one `markdownViewer` screenshot/checklist.
 1. **Honest count** — Ctrl/Cmd+F for `token`. Expect one document-wide `n/N`
    that includes prose, cross-emphasis/link text, and the fenced code source.
    Count must not be “DOM hits + CM hits”.

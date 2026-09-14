@@ -8,10 +8,12 @@
 
 **ui 观感：** Find 输入不抢焦点、不污染正文。
 
-- [ ] Query typing keeps focus in FindBar; CM mount/search does not steal caret
-- [ ] Keystrokes while Find is focused do not write into document body / Markdown
-- [ ] ADR 0011 count / navigate / replace contracts unchanged
-- [ ] No FindBar skin / second Find UI
-- [ ] Light GUI SMOKE (extend semantic-find family) + unit where seams allow; build green
+- [x] Query typing keeps focus in FindBar; CM mount/search does not steal caret
+- [x] Keystrokes while Find is focused do not write into document body / Markdown
+- [x] ADR 0011 count / navigate / replace contracts unchanged
+- [x] No FindBar skin / second Find UI
+- [x] Light GUI SMOKE (extend semantic-find family) + unit where seams allow; build green
 
 ## Comments
+
+- 2026-09-14 (Asia/Shanghai): Added pure Find focus ownership guards, skipped prose/CodeMirror focus moves while Find or Replace owns focus, stopped Find key events from reaching editor handlers, and extended the semantic-find Light smoke checklist. Focused unit and build verification passed.
