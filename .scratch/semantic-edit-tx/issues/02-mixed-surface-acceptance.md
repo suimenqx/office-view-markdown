@@ -8,10 +8,10 @@
 
 **ui 观感：** Ctrl+Z 跨面回退选区一次落稳，勿先跳块顶再归位；进出嵌入块无第二焦点环。
 
-- [ ] Prose edit → one commit / undo / dirty
-- [ ] CodeMirror code edit → same contract (not a divergent private stack for document Ctrl+Z)
-- [ ] Task (or list) toggle → same contract
-- [ ] Link or HTML popover edit → same contract
-- [ ] Undo through the mixed sequence in intent order; redo as applicable; stable position restored
-- [ ] Save: on-disk Markdown matches; dirty clears once; remount-only work does not re-dirty
-- [ ] Manual SMOKE note + build/suite green
+- [x] Prose edit → one commit / undo / dirty
+- [x] CodeMirror code edit → same contract (not a divergent private stack for document Ctrl+Z)
+- [x] Task (or list) toggle → same contract
+- [x] Link or HTML popover edit → same contract
+- [x] Undo through the mixed sequence in intent order; redo as applicable; stable position restored
+- [x] Save: on-disk Markdown matches; dirty clears once; remount-only work does not re-dirty
+- [x] Manual SMOKE note + build/suite green

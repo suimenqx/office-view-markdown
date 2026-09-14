@@ -8,7 +8,7 @@
 
 **ui 观感：** 正文与内嵌块共用一套 focus token；进/出勿闪第二套环；拒块内独立 undo 条与焦点暗示历史归属。
 
-- [ ] Document Ctrl+Z / redo ignores focus as ownership signal
-- [ ] No double-commit from CM sync-on-delay + sync-on-blur for one intent
-- [ ] Outer undo does not “eat” an intent already represented, and does not no-op when an intent remains
-- [ ] Unit/host checks for focus-in-CM vs focus-in-prose same undo policy; build green
+- [x] Document Ctrl+Z / redo ignores focus as ownership signal
+- [x] No double-commit from CM sync-on-delay + sync-on-blur for one intent
+- [x] Outer undo does not “eat” an intent already represented, and does not no-op when an intent remains
+- [x] Unit/host checks for focus-in-CM vs focus-in-prose same undo policy; build green

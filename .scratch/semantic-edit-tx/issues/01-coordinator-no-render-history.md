@@ -8,7 +8,7 @@
 
 **ui 观感：** 一次意图最多一次 dirty 脉冲；渲染重挂/lazy CM 不得抖 tab 圆点。
 
-- [ ] Canonical commit path owns Markdown snapshot + dirty notification
-- [ ] Remount / lazy CM mount-teardown / diagram refresh / outline chrome: zero history, zero extra dirty
-- [ ] Focus change alone does not create undo steps or switch stack ownership
-- [ ] Unit coverage for commit vs presentation-only paths; build green
+- [x] Canonical commit path owns Markdown snapshot + dirty notification
+- [x] Remount / lazy CM mount-teardown / diagram refresh / outline chrome: zero history, zero extra dirty
+- [x] Focus change alone does not create undo steps or switch stack ownership
+- [x] Unit coverage for commit vs presentation-only paths; build green
