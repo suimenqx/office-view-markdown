@@ -1,50 +1,55 @@
 import { EditorSelection, RangeSetBuilder, StateEffect, StateField } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 
-import { getMarkdown } from "../markdown/getMarkdown";
-import { focusCodeMirror, getCodeMirrorView } from "../codeBlock/codeMirrorManager";
-import { recordHistoryChange } from "../util/instantHistory";
-import { fireContentInput } from "../util/saveToolbarState";
-import { getNodeByPath, getNodePath } from "../util/selection";
+import {
+    focusCodeMirrorAtDocumentPosition,
+    getCodeMirrorView,
+} from "../codeBlock/codeMirrorManager";
+import {
+    buildCodeSearchSegment,
+    buildDocumentSearchSegments,
+    buildProseSearchSegment,
+    buildTaskSearchSegment,
+    DOCUMENT_SEARCH_EXCLUSION_SELECTOR,
+    findInDocumentSearchIndex,
+    type DocumentSearchMatch,
+    type DocumentSearchOptions,
+    type DocumentSearchSegment,
+} from "../util/documentSearchIndex";
+import { createDocumentPosition, setSessionDocumentPosition } from "../util/documentPosition";
+import { commitAuthoredEdit, runPresentationOnly } from "../util/editTransaction";
+import {
+    getDocumentPositionBlockKey,
+    restoreDocumentPositionInEditor,
+    scrollCaretIntoEditorView,
+    setSelectionFocusWithAffinity,
+} from "../util/selection";
 
 const HIGHLIGHT_CLASS = "vditor-find-highlight";
 const CURRENT_CLASS = "vditor-find-highlight--current";
 const CSS_FIND_MATCH = "vditor-find-match";
 const CSS_FIND_CURRENT = "vditor-find-current";
-const FIND_SKIP_SELECTOR = [
-    "code",
-    ".cm-editor",
-    ".vditor-cm-chrome",
-    ".vditor-find-bar",
-    "[hidden]",
-    "[aria-hidden='true']",
-].join(", ");
+const FIND_SKIP_SELECTOR = DOCUMENT_SEARCH_EXCLUSION_SELECTOR;
 
 const c = (name: string) => `<span class="codicon codicon-${name}" aria-hidden="true"></span>`;
 
-type FindMatch = FindDomMatch | FindCodeMirrorMatch;
+type FindOptionsState = Required<DocumentSearchOptions>;
 
-interface FindDomMatch {
-    kind: "dom";
-    startPath: number[];
-    startOffset: number;
-    endPath: number[];
-    endOffset: number;
-}
+type SearchTextNode = {
+    node: Text;
+    start: number;
+    end: number;
+};
 
-interface FindCodeMirrorMatch {
-    kind: "cm";
+type RenderedSearchSegment = {
+    segment: DocumentSearchSegment;
     block: HTMLElement;
-    view?: EditorView;
-    from: number;
-    to: number;
-}
+    kind: "prose" | "code";
+    nodes: SearchTextNode[];
+    sourceElement?: HTMLElement;
+};
 
-interface FindOptionsState {
-    matchCase: boolean;
-    wholeWord: boolean;
-    regex: boolean;
-}
+type FindMatch = DocumentSearchMatch;
 
 interface CompiledPattern {
     global: RegExp;
@@ -70,13 +75,6 @@ const cmDecorationsField = StateField.define<DecorationSet>({
 });
 
 const supportsCssCustomHighlight = () => typeof CSS !== "undefined" && "highlights" in CSS;
-
-const clampNodeOffset = (node: Node, offset: number) => {
-    if (node.nodeType === 3) {
-        return Math.min(Math.max(0, offset), node.textContent?.length || 0);
-    }
-    return Math.min(Math.max(0, offset), node.childNodes.length);
-};
 
 const ensureFindDecorationsField = (view: EditorView) => {
     if (view.state.field(cmDecorationsField, false)) {
@@ -114,6 +112,7 @@ export class FindBar {
     private replaceToggleBtn: HTMLButtonElement;
     private countEl: HTMLElement;
     private matches: FindMatch[] = [];
+    private renderedSegments = new Map<string, RenderedSearchSegment>();
     private currentIndex = -1;
     private vditor: IVditor;
     private options: FindOptionsState = {
@@ -129,6 +128,7 @@ export class FindBar {
     private focusRestoreTimer = 0;
     private activeFindField: HTMLInputElement | null = null;
     private findComposing = false;
+    private suppressRefresh = false;
 
     constructor(vditor: IVditor) {
         this.vditor = vditor;
@@ -263,20 +263,180 @@ export class FindBar {
         return this.getScrollElement() || this.getContentEl();
     }
 
-    private getDomMatchRange(match: FindDomMatch): Range | null {
+    private getSearchBlock(node: Node, editor: HTMLElement): HTMLElement {
+        const element = node.nodeType === Node.TEXT_NODE ? node.parentElement : node as HTMLElement;
+        const block = element?.closest<HTMLElement>(
+            "[data-type='code-block'], [data-type='math-block'], li.vditor-task, [data-block='0'], p, h1, h2, h3, h4, h5, h6, blockquote, ul, ol",
+        );
+        return block && editor.contains(block) ? block : editor;
+    }
+
+    private isExcludedSearchNode(node: Node): boolean {
+        const element = node.nodeType === Node.TEXT_NODE ? node.parentElement : node as HTMLElement;
+        return !!element?.closest(FIND_SKIP_SELECTOR);
+    }
+
+    private getBlockKey(editor: HTMLElement, block: HTMLElement, fallback: "prose" | "code" | "special" = "prose") {
+        if (block === editor) {
+            return `${fallback}:0`;
+        }
+        try {
+            return getDocumentPositionBlockKey(editor, block);
+        } catch {
+            return `${fallback}:0`;
+        }
+    }
+
+    private getCodeSource(block: HTMLElement) {
+        const sourceElement = block.querySelector("pre code, code") as HTMLElement | null;
+        const text = (sourceElement?.textContent || "").replaceAll("\u200B", "");
+        return { sourceElement, text };
+    }
+
+    private buildRenderedSearchSegments(): RenderedSearchSegment[] {
         const editor = this.getEditorRoot();
         if (!editor) {
-            return null;
+            return [];
         }
-        const startNode = getNodeByPath(editor, match.startPath);
-        const endNode = getNodeByPath(editor, match.endPath);
-        if (!startNode || !endNode) {
+
+        const proseGroups = new Map<HTMLElement, { block: HTMLElement; nodes: SearchTextNode[]; firstNode: Node }>();
+        const specialBlocks = new Set<HTMLElement>();
+        const walker = editor.ownerDocument.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
+        let node: Node | null;
+        while ((node = walker.nextNode())) {
+            const textNode = node as Text;
+            if (!textNode.textContent || this.isExcludedSearchNode(textNode)) {
+                continue;
+            }
+            const parent = textNode.parentElement;
+            const codeBlock = parent?.closest<HTMLElement>("[data-type='code-block'], [data-type='math-block']");
+            if (codeBlock && editor.contains(codeBlock)) {
+                specialBlocks.add(codeBlock);
+                continue;
+            }
+            const inlineMath = parent?.closest<HTMLElement>("[data-type='math-inline']");
+            if (inlineMath && editor.contains(inlineMath)) {
+                specialBlocks.add(inlineMath);
+                continue;
+            }
+            const block = this.getSearchBlock(textNode, editor);
+            const group = proseGroups.get(block) || { block, nodes: [], firstNode: textNode };
+            const start = group.nodes.length === 0 ? 0 : group.nodes[group.nodes.length - 1].end;
+            group.nodes.push({ node: textNode, start, end: start + textNode.textContent.length });
+            proseGroups.set(block, group);
+        }
+
+        editor.querySelectorAll<HTMLElement>("[data-type='code-block'], [data-type='math-block'], [data-type='math-inline']")
+            .forEach((block) => specialBlocks.add(block));
+
+        const entries: Array<RenderedSearchSegment & { firstNode: Node }> = [];
+        proseGroups.forEach((group) => {
+            const surface = group.block.classList.contains("vditor-task") ? "task" : "prose";
+            const blockKey = this.getBlockKey(editor, group.block, surface === "task" ? "prose" : "prose");
+            const text = group.nodes.map((item) => item.node.textContent || "").join("");
+            const segment = surface === "task"
+                ? buildTaskSearchSegment({ blockKey, text, order: 0 })
+                : buildProseSearchSegment({ blockKey, text, order: 0 });
+            entries.push({ segment, block: group.block, kind: "prose", nodes: group.nodes, firstNode: group.firstNode });
+        });
+
+        let inlineMathOrdinal = 0;
+        specialBlocks.forEach((block) => {
+            const isInlineMath = block.getAttribute("data-type") === "math-inline";
+            const isCodeBlock = block.getAttribute("data-type") === "code-block";
+            if (!isInlineMath && !isCodeBlock && block.getAttribute("data-type") !== "math-block") {
+                return;
+            }
+            const source = this.getCodeSource(block);
+            if (isInlineMath) {
+                const parentBlock = this.getSearchBlock(block, editor);
+                const parentKey = this.getBlockKey(editor, parentBlock);
+                const blockKey = `${parentKey}:inline-math:${inlineMathOrdinal++}`;
+                const segment = buildCodeSearchSegment({
+                    blockKey,
+                    sourceId: blockKey,
+                    text: source.text,
+                    order: 0,
+                    surface: "special",
+                });
+                entries.push({ segment, block, kind: "code", nodes: [], sourceElement: source.sourceElement || undefined, firstNode: block });
+                return;
+            }
+            const fallback = block.getAttribute("data-type") === "math-block" ? "special" : "code";
+            const blockKey = this.getBlockKey(editor, block, fallback);
+            const segment = buildCodeSearchSegment({
+                blockKey,
+                text: source.text,
+                order: 0,
+                surface: fallback,
+            });
+            entries.push({ segment, block, kind: "code", nodes: [], sourceElement: source.sourceElement || undefined, firstNode: block });
+        });
+
+        entries.sort((a, b) => {
+            if (a.firstNode === b.firstNode) {
+                return 0;
+            }
+            const position = a.firstNode.compareDocumentPosition(b.firstNode);
+            if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
+                return -1;
+            }
+            if (position & Node.DOCUMENT_POSITION_PRECEDING) {
+                return 1;
+            }
+            return 0;
+        });
+
+        const indexedSegments = buildDocumentSearchSegments(entries.map((entry, order) => ({
+            ...entry.segment,
+            order,
+        })));
+        const bySourceId = new Map(indexedSegments.map((segment) => [segment.sourceId, segment]));
+        return entries
+            .map((entry) => {
+                const segment = bySourceId.get(entry.segment.sourceId);
+                return segment ? { ...entry, segment } : null;
+            })
+            .filter((entry): entry is RenderedSearchSegment & { firstNode: Node } => !!entry);
+    }
+
+    private getRenderedSegment(match: FindMatch) {
+        return this.renderedSegments.get(match.segment.sourceId);
+    }
+
+    private setRangeEndpoint(range: Range, nodes: SearchTextNode[], offset: number, start: boolean) {
+        const safeOffset = Math.max(0, offset);
+        for (const item of nodes) {
+            if (safeOffset <= item.end) {
+                const nodeOffset = Math.max(0, Math.min(item.node.textContent?.length || 0, safeOffset - item.start));
+                if (start) {
+                    range.setStart(item.node, nodeOffset);
+                } else {
+                    range.setEnd(item.node, nodeOffset);
+                }
+                return;
+            }
+        }
+        const last = nodes[nodes.length - 1];
+        if (last) {
+            const nodeOffset = last.node.textContent?.length || 0;
+            if (start) {
+                range.setStart(last.node, nodeOffset);
+            } else {
+                range.setEnd(last.node, nodeOffset);
+            }
+        }
+    }
+
+    private getProseMatchRange(match: FindMatch): Range | null {
+        const rendered = this.getRenderedSegment(match);
+        if (!rendered || rendered.kind !== "prose" || rendered.nodes.length === 0) {
             return null;
         }
         try {
-            const range = editor.ownerDocument.createRange();
-            range.setStart(startNode, clampNodeOffset(startNode, match.startOffset));
-            range.setEnd(endNode, clampNodeOffset(endNode, match.endOffset));
+            const range = rendered.block.ownerDocument.createRange();
+            this.setRangeEndpoint(range, rendered.nodes, match.sourceRange.start, true);
+            this.setRangeEndpoint(range, rendered.nodes, match.sourceRange.end, false);
             return range;
         } catch {
             return null;
@@ -289,7 +449,12 @@ export class FindBar {
         if (!editor) {
             return;
         }
-        this.editorObserver = new MutationObserver(() => this.scheduleRefresh());
+        this.editorObserver = new MutationObserver(() => {
+            if (this.suppressRefresh) {
+                return;
+            }
+            this.scheduleRefresh();
+        });
         this.editorObserver.observe(editor, {
             subtree: true,
             childList: true,
@@ -330,13 +495,13 @@ export class FindBar {
     }
 
     private scheduleRefresh() {
-        if (this.refreshScheduled || !this.isVisible()) {
+        if (this.refreshScheduled || this.suppressRefresh || !this.isVisible()) {
             return;
         }
         this.refreshScheduled = true;
         window.requestAnimationFrame(() => {
             this.refreshScheduled = false;
-            if (!this.isVisible() || !this.input.value.trim()) {
+            if (this.suppressRefresh || !this.isVisible() || !this.input.value.trim()) {
                 return;
             }
             const preferredIndex = this.currentIndex >= 0 ? this.currentIndex : 0;
@@ -370,50 +535,32 @@ export class FindBar {
         }
     }
 
-    private scrollDomMatchIntoView(match: FindDomMatch) {
-        const range = this.getDomMatchRange(match);
-        if (!range) {
-            return;
+    private ensureCodeMirrorMatchView(match: FindMatch) {
+        const rendered = this.getRenderedSegment(match);
+        if (!rendered || rendered.kind !== "code") {
+            return undefined;
         }
-        const scrollEl = this.getScrollElement();
-        const markRect = range.getBoundingClientRect();
-        if (!scrollEl || (markRect.width === 0 && markRect.height === 0)) {
-            range.startContainer.parentElement?.scrollIntoView({ block: "nearest", inline: "nearest" });
-            return;
+        const isEmbeddedBlock = rendered.block.matches("[data-type='code-block'], [data-type='math-block']");
+        if (!isEmbeddedBlock) {
+            rendered.block.scrollIntoView({ block: "nearest", inline: "nearest" });
+            rendered.sourceElement?.scrollIntoView({ block: "nearest", inline: "nearest" });
+            return undefined;
         }
-        const scrollRect = scrollEl.getBoundingClientRect();
-        const padding = 40;
-        if (markRect.top < scrollRect.top + padding) {
-            scrollEl.scrollTop += markRect.top - scrollRect.top - padding;
-        } else if (markRect.bottom > scrollRect.bottom - padding) {
-            scrollEl.scrollTop += markRect.bottom - scrollRect.bottom + padding;
-        }
-    }
 
-    private scrollCodeMirrorMatchIntoView(match: FindCodeMirrorMatch) {
-        const view = this.ensureCodeMirrorMatchView(match);
-        if (!view) {
-            match.block.scrollIntoView({ block: "nearest", inline: "nearest" });
-            return;
-        }
-        view.dispatch({
-            effects: EditorView.scrollIntoView(match.from, { y: "center" }),
-            selection: EditorSelection.cursor(match.from),
+        this.suppressRefresh = true;
+        runPresentationOnly(this.vditor, () => {
+            focusCodeMirrorAtDocumentPosition(
+                rendered.block,
+                match.sourceRange.start,
+                match.sourceRange.end,
+                this.vditor,
+                true,
+            );
         });
-    }
-
-    private ensureCodeMirrorMatchView(match: FindCodeMirrorMatch) {
-        const currentView = getCodeMirrorView(match.block);
-        if (currentView) {
-            match.view = currentView;
-            return currentView;
-        }
-        focusCodeMirror(match.block, true, this.vditor);
-        const mountedView = getCodeMirrorView(match.block);
-        if (mountedView) {
-            match.view = mountedView;
-        }
-        return mountedView;
+        window.setTimeout(() => {
+            this.suppressRefresh = false;
+        }, 0);
+        return getCodeMirrorView(rendered.block);
     }
 
     private setReplaceExpanded(expanded: boolean) {
@@ -441,67 +588,18 @@ export class FindBar {
             return;
         }
 
-        const contentEl = this.getContentEl();
-        if (!contentEl) return;
-
-        this.collectDomMatches(contentEl, compiled);
-        this.applyCodeMirrorHighlights(contentEl, compiled);
-        this.sortMatchesInDocumentOrder();
+        const rendered = this.buildRenderedSearchSegments();
+        this.renderedSegments = new Map(rendered.map((entry) => [entry.segment.sourceId, entry]));
+        this.matches = findInDocumentSearchIndex(
+            rendered.map((entry) => entry.segment),
+            this.input.value,
+            this.options,
+        );
         this.currentIndex = this.matches.length > 0
             ? Math.min(Math.max(preferredIndex, 0), this.matches.length - 1)
             : -1;
         this.updateCurrent();
         this.updateCount();
-    }
-
-    private collectDomMatches(root: HTMLElement, compiled: CompiledPattern) {
-        const editorRoot = this.getEditorRoot();
-        if (!editorRoot) {
-            return;
-        }
-
-        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-            acceptNode(node) {
-                const parent = node.parentElement;
-                if (!parent) return NodeFilter.FILTER_REJECT;
-                if (parent.closest(FIND_SKIP_SELECTOR)) return NodeFilter.FILTER_REJECT;
-                return NodeFilter.FILTER_ACCEPT;
-            },
-        });
-
-        const textNodes: Text[] = [];
-        let node: Node | null;
-        while ((node = walker.nextNode())) {
-            textNodes.push(node as Text);
-        }
-
-        for (const textNode of textNodes) {
-            const text = textNode.textContent || "";
-            const regex = new RegExp(compiled.global.source, compiled.global.flags);
-            let match: RegExpExecArray | null;
-            while ((match = regex.exec(text)) !== null) {
-                const matchedText = match[0];
-                if (!matchedText) {
-                    regex.lastIndex += 1;
-                    continue;
-                }
-                const range = document.createRange();
-                range.setStart(textNode, match.index);
-                range.setEnd(textNode, match.index + matchedText.length);
-                const startPath = getNodePath(editorRoot, range.startContainer);
-                const endPath = getNodePath(editorRoot, range.endContainer);
-                if (!startPath || !endPath) {
-                    continue;
-                }
-                this.matches.push({
-                    kind: "dom",
-                    startPath,
-                    startOffset: range.startOffset,
-                    endPath,
-                    endOffset: range.endOffset,
-                });
-            }
-        }
     }
 
     private renderDomHighlights() {
@@ -512,10 +610,11 @@ export class FindBar {
         const currentRanges: Range[] = [];
         for (let i = 0; i < this.matches.length; i++) {
             const match = this.matches[i];
-            if (match.kind !== "dom") {
+            const rendered = this.getRenderedSegment(match);
+            if (!rendered || rendered.kind !== "prose") {
                 continue;
             }
-            const range = this.getDomMatchRange(match);
+            const range = this.getProseMatchRange(match);
             if (!range) {
                 continue;
             }
@@ -537,80 +636,20 @@ export class FindBar {
         CSS.highlights.delete(CSS_FIND_CURRENT);
     }
 
-    private applyCodeMirrorHighlights(root: HTMLElement, compiled: CompiledPattern) {
-        const blockElements = root.querySelectorAll<HTMLElement>("[data-type='code-block'], [data-type='math-block']");
-        for (const blockElement of blockElements) {
-            const view = getCodeMirrorView(blockElement);
-            if (view) {
-                ensureFindDecorationsField(view);
-            }
-            const text = view?.state.doc.toString()
-                ?? blockElement.querySelector("pre code, code")?.textContent
-                ?? "";
-            const regex = new RegExp(compiled.global.source, compiled.global.flags);
-            let match: RegExpExecArray | null;
-            while ((match = regex.exec(text)) !== null) {
-                const matchedText = match[0];
-                if (!matchedText) {
-                    regex.lastIndex += 1;
-                    continue;
-                }
-                this.matches.push({
-                    kind: "cm",
-                    block: blockElement,
-                    view,
-                    from: match.index,
-                    to: match.index + matchedText.length,
-                });
-            }
-        }
-        this.updateCodeMirrorDecorations();
-    }
-
-    private sortMatchesInDocumentOrder() {
-        this.matches.sort((a, b) => {
-            if (a.kind === "cm" && b.kind === "cm" && a.block === b.block) {
-                return a.from - b.from;
-            }
-            const editor = this.getEditorRoot();
-            const aNode = a.kind === "dom"
-                ? (editor ? getNodeByPath(editor, a.startPath) : null)
-                : a.block;
-            const bNode = b.kind === "dom"
-                ? (editor ? getNodeByPath(editor, b.startPath) : null)
-                : b.block;
-            if (!aNode || !bNode) {
-                return 0;
-            }
-            if (aNode === bNode) {
-                if (a.kind === "cm" && b.kind === "cm") {
-                    return a.from - b.from;
-                }
-                return 0;
-            }
-            const position = aNode.compareDocumentPosition(bNode);
-            if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
-                return -1;
-            }
-            if (position & Node.DOCUMENT_POSITION_PRECEDING) {
-                return 1;
-            }
-            return 0;
-        });
-    }
-
     private updateCodeMirrorDecorations() {
-        const cmMatchesByView = new Map<EditorView, Array<{ match: FindCodeMirrorMatch; index: number }>>();
+        const cmMatchesByView = new Map<EditorView, Array<{ match: FindMatch; index: number }>>();
         this.matches.forEach((match, index) => {
-            if (match.kind !== "cm") {
+            const rendered = this.getRenderedSegment(match);
+            if (!rendered || rendered.kind !== "code") {
                 return;
             }
-            if (!match.view) {
+            const view = getCodeMirrorView(rendered.block);
+            if (!view) {
                 return;
             }
-            const matches = cmMatchesByView.get(match.view) || [];
+            const matches = cmMatchesByView.get(view) || [];
             matches.push({ match, index });
-            cmMatchesByView.set(match.view, matches);
+            cmMatchesByView.set(view, matches);
         });
 
         const views = new Set<EditorView>();
@@ -629,7 +668,11 @@ export class FindBar {
                 const className = index === this.currentIndex
                     ? `${HIGHLIGHT_CLASS} ${CURRENT_CLASS}`
                     : HIGHLIGHT_CLASS;
-                builder.add(match.from, match.to, Decoration.mark({ class: className }));
+                const from = Math.max(0, Math.min(match.sourceRange.start, view.state.doc.length));
+                const to = Math.max(from, Math.min(match.sourceRange.end, view.state.doc.length));
+                if (from < to) {
+                    builder.add(from, to, Decoration.mark({ class: className }));
+                }
             }
             view.dispatch({
                 effects: cmDecorationsEffect.of(builder.finish()),
@@ -651,6 +694,7 @@ export class FindBar {
             });
         });
         this.matches = [];
+        this.renderedSegments.clear();
         this.currentIndex = -1;
     }
 
@@ -663,18 +707,35 @@ export class FindBar {
 
     private updateCurrent() {
         const currentMatch = this.currentIndex >= 0 ? this.matches[this.currentIndex] : undefined;
-        if (currentMatch?.kind === "cm") {
+        const rendered = currentMatch ? this.getRenderedSegment(currentMatch) : undefined;
+        if (currentMatch && rendered?.kind === "code") {
             this.ensureCodeMirrorMatchView(currentMatch);
         }
         this.renderDomHighlights();
         this.updateCodeMirrorDecorations();
-        if (currentMatch) {
-            if (currentMatch.kind === "dom") {
-                this.scrollDomMatchIntoView(currentMatch);
-            } else {
-                this.scrollCodeMirrorMatchIntoView(currentMatch);
-                this.scheduleRestoreFindFocus();
+        if (currentMatch && rendered?.kind === "prose") {
+            const range = this.getProseMatchRange(currentMatch);
+            const editor = this.getEditorRoot();
+            if (range && editor) {
+                const position = createDocumentPosition({
+                    mode: this.vditor.currentMode,
+                    surface: currentMatch.sourceRange.surface,
+                    blockKey: currentMatch.sourceRange.blockKey,
+                    anchor: currentMatch.sourceRange.start,
+                    head: currentMatch.sourceRange.end,
+                    presentation: "edit",
+                });
+                setSessionDocumentPosition(this.vditor, position);
+                const restored = restoreDocumentPositionInEditor(this.vditor, editor, position);
+                if (restored) {
+                    scrollCaretIntoEditorView(this.vditor, restored);
+                } else {
+                    setSelectionFocusWithAffinity(range, "forward");
+                    scrollCaretIntoEditorView(this.vditor, range);
+                }
             }
+        } else if (currentMatch && rendered?.kind === "code") {
+            this.scheduleRestoreFindFocus();
         }
     }
 
@@ -693,40 +754,78 @@ export class FindBar {
         }
     }
 
-    private replaceDomMatch(match: FindDomMatch) {
-        const range = this.getDomMatchRange(match);
+    private replaceProseMatch(match: FindMatch) {
+        const range = this.getProseMatchRange(match);
         if (!range) {
             return false;
         }
-        const replacement = this.getReplacementText(range.toString());
+        const replacement = this.getReplacementText(match.text);
         range.deleteContents();
         range.insertNode(document.createTextNode(replacement));
         range.startContainer.parentNode?.normalize();
+        setSessionDocumentPosition(this.vditor, createDocumentPosition({
+            mode: this.vditor.currentMode,
+            surface: match.sourceRange.surface,
+            blockKey: match.sourceRange.blockKey,
+            anchor: match.sourceRange.start,
+            head: match.sourceRange.start + replacement.length,
+            presentation: "edit",
+        }));
         return true;
     }
 
-    private replaceCodeMirrorMatch(match: FindCodeMirrorMatch) {
+    private replaceInlineSourceMatch(match: FindMatch, rendered: RenderedSearchSegment) {
+        if (!rendered.sourceElement) {
+            return false;
+        }
+        const source = rendered.sourceElement.textContent || "";
+        const start = Math.max(0, Math.min(match.sourceRange.start, source.length));
+        const end = Math.max(start, Math.min(match.sourceRange.end, source.length));
+        const replacement = this.getReplacementText(source.slice(start, end));
+        rendered.sourceElement.textContent = `${source.slice(0, start)}${replacement}${source.slice(end)}`;
+        setSessionDocumentPosition(this.vditor, createDocumentPosition({
+            mode: this.vditor.currentMode,
+            surface: match.sourceRange.surface,
+            blockKey: match.sourceRange.blockKey,
+            anchor: start,
+            head: start + replacement.length,
+            presentation: "edit",
+        }));
+        return true;
+    }
+
+    private replaceCodeMirrorMatch(match: FindMatch) {
+        const rendered = this.getRenderedSegment(match);
+        if (!rendered) {
+            return false;
+        }
+        if (!rendered.block.matches("[data-type='code-block'], [data-type='math-block']")) {
+            return this.replaceInlineSourceMatch(match, rendered);
+        }
         const view = this.ensureCodeMirrorMatchView(match);
         if (!view) {
             return false;
         }
-        const matchedText = view.state.sliceDoc(match.from, match.to);
-        const replacement = this.getReplacementText(matchedText);
+        const replacement = this.getReplacementText(match.text);
+        const from = Math.max(0, Math.min(match.sourceRange.start, view.state.doc.length));
+        const to = Math.max(from, Math.min(match.sourceRange.end, view.state.doc.length));
         view.dispatch({
-            changes: { from: match.from, to: match.to, insert: replacement },
-            selection: EditorSelection.cursor(match.from + replacement.length),
-            effects: EditorView.scrollIntoView(match.from + replacement.length, { y: "center" }),
+            changes: { from, to, insert: replacement },
+            selection: EditorSelection.cursor(from + replacement.length),
         });
+        setSessionDocumentPosition(this.vditor, createDocumentPosition({
+            mode: this.vditor.currentMode,
+            surface: match.sourceRange.surface,
+            blockKey: match.sourceRange.blockKey,
+            anchor: from,
+            head: from + replacement.length,
+            presentation: "edit",
+        }));
         return true;
     }
 
-    private onReplaceApplied(touchedDom: boolean) {
-        if (touchedDom) {
-            recordHistoryChange(this.vditor);
-            return;
-        }
-        fireContentInput(this.vditor, getMarkdown(this.vditor));
-        this.vditor.undo.resetIcon(this.vditor);
+    private commitFindReplace() {
+        commitAuthoredEdit(this.vditor, { intent: "findReplace" });
     }
 
     private replaceCurrent() {
@@ -735,13 +834,14 @@ export class FindBar {
         }
         const index = this.currentIndex >= 0 ? this.currentIndex : 0;
         const match = this.matches[index];
-        const replaced = match.kind === "dom"
-            ? this.replaceDomMatch(match)
+        const rendered = this.getRenderedSegment(match);
+        const replaced = rendered?.kind === "prose"
+            ? this.replaceProseMatch(match)
             : this.replaceCodeMirrorMatch(match);
         if (!replaced) {
             return;
         }
-        this.onReplaceApplied(match.kind === "dom");
+        this.commitFindReplace();
         this.search(index);
     }
 
@@ -750,30 +850,32 @@ export class FindBar {
             return;
         }
 
-        let touchedDom = false;
-        const domMatches = this.matches.filter((match): match is FindDomMatch => match.kind === "dom");
-        for (let i = domMatches.length - 1; i >= 0; i--) {
-            touchedDom = this.replaceDomMatch(domMatches[i]) || touchedDom;
-        }
-
         const cmChangesByView = new Map<EditorView, Array<{ from: number; to: number; insert: string }>>();
-        this.matches.forEach((match) => {
-            if (match.kind !== "cm") {
-                return;
+        let replacedAny = false;
+        for (let i = this.matches.length - 1; i >= 0; i--) {
+            const match = this.matches[i];
+            const rendered = this.getRenderedSegment(match);
+            if (!rendered) {
+                continue;
+            }
+            if (rendered.kind === "prose") {
+                replacedAny = this.replaceProseMatch(match) || replacedAny;
+                continue;
+            }
+            if (!rendered.block.matches("[data-type='code-block'], [data-type='math-block']")) {
+                replacedAny = this.replaceInlineSourceMatch(match, rendered) || replacedAny;
+                continue;
             }
             const view = this.ensureCodeMirrorMatchView(match);
             if (!view) {
-                return;
+                continue;
             }
-            const matchedText = view.state.sliceDoc(match.from, match.to);
+            const from = Math.max(0, Math.min(match.sourceRange.start, view.state.doc.length));
+            const to = Math.max(from, Math.min(match.sourceRange.end, view.state.doc.length));
             const changes = cmChangesByView.get(view) || [];
-            changes.push({
-                from: match.from,
-                to: match.to,
-                insert: this.getReplacementText(matchedText),
-            });
+            changes.push({ from, to, insert: this.getReplacementText(match.text) });
             cmChangesByView.set(view, changes);
-        });
+        }
 
         cmChangesByView.forEach((changes, view) => {
             if (changes.length === 0) {
@@ -781,9 +883,13 @@ export class FindBar {
             }
             changes.sort((a, b) => a.from - b.from);
             view.dispatch({ changes });
+            replacedAny = true;
         });
 
-        this.onReplaceApplied(touchedDom);
+        if (!replacedAny) {
+            return;
+        }
+        this.commitFindReplace();
         this.search();
     }
 

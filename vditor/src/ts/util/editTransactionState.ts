@@ -1,6 +1,6 @@
 /** ADR 0009 session state — no imports from history/render (avoids cycles). */
 
-export type EditIntentKind = "prose" | "code" | "task" | "linkHtml" | "specialBlock" | "other";
+export type EditIntentKind = "prose" | "code" | "task" | "linkHtml" | "specialBlock" | "findReplace" | "other";
 
 export type EditTransactionSession = {
     lastFingerprint?: string;
