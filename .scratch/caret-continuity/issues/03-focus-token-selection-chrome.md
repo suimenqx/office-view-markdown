@@ -8,7 +8,7 @@
 
 **ui 观感：** 进/出 code 仅一套 focus；跨面拖选/Shift+Arrow 同族高亮；拒系统蓝 vs 主题色分裂；FindBar 只消费、不开新皮。
 
-- [ ] Entering/leaving code (and sibling embeds): one focus token only — no surface + inner CM ring stack
-- [ ] Cross-surface drag / Shift+Arrow highlight: one family (theme-affine), not system-blue vs theme-color split
-- [ ] No FindBar rewrite or new selection skin
-- [ ] Light/Dark(/HC) smoke optional for focus-ring / highlight 观感; build green
+- [x] Entering/leaving code (and sibling embeds): one focus token only — no surface + inner CM ring stack
+- [x] Cross-surface drag / Shift+Arrow highlight: one family (theme-affine), not system-blue vs theme-color split
+- [x] No FindBar rewrite or new selection skin
+- [x] Light/Dark(/HC) smoke optional for focus-ring / highlight 观感; build green

@@ -5,6 +5,13 @@
   width: 100%;
   min-width: 1px;
 
+  // ADR 0010: prose and CM selections use one theme-affine selection family.
+  .vditor-reset::selection,
+  .vditor-reset *::selection {
+    background: var(--editor-selection-bg, var(--cm-selection-bg-focused)) !important;
+    color: var(--editor-selection-fg, inherit);
+  }
+
   pre.vditor-reset {
     background-color: var(--textarea-background-color, var(--panel-background-color));
     margin: 0;

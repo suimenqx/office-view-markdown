@@ -3,11 +3,13 @@ import { focusCodeBlockChromeLanguage } from "../codeBlock/codeBlockChrome";
 import { tryFocusAdjacentCodeMirror } from "../codeBlock/codeMirrorNavigation";
 import {
     focusCodeMirror,
+    focusCodeMirrorAtDocumentPosition,
     getCodeMirrorView,
     hasCodeMirror,
     isCmCodeBlock,
     isInsideCodeBlockChrome,
     isInsideCodeMirror,
+    isSpecialPreviewBlock,
 } from "../codeBlock/codeMirrorManager";
 import { isCtrl, isFirefox } from "../util/compatibility";
 import {
@@ -306,7 +308,11 @@ export const processKeydown = (vditor: IVditor, event: KeyboardEvent) => {
                     // 当前块删除后光标落于代码渲染块上，当前块会被删除，因此需要阻止事件，不能和 keyup 中的代码块处理合并
                     const prevBlock = blockElement.previousElementSibling as HTMLElement;
                     const prevPreview = prevBlock?.lastElementChild as HTMLElement;
-                    if (!focusWysiwygCodeBlock(prevBlock, vditor, false) && prevPreview) {
+                    if ((isCmCodeBlock(prevBlock) || isSpecialPreviewBlock(prevBlock))) {
+                        const view = getCodeMirrorView(prevBlock);
+                        const length = view?.state.doc.length ?? prevBlock.querySelector("pre code")?.textContent?.length ?? 0;
+                        focusCodeMirrorAtDocumentPosition(prevBlock, length, length, vditor);
+                    } else if (prevPreview) {
                         showCode(prevPreview, vditor, false);
                     }
                     if (blockElement.innerHTML.trim().replace(Constants.ZWSP, "") === "") {

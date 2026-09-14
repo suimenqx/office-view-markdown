@@ -8,7 +8,7 @@
 
 **ui 观感：** 重挂后选区一次落稳；勿「先跳块顶再归位」；进/出嵌入块勿叠第二焦点环。
 
-- [ ] Logical document position covers prose, task/list, CM, and special blocks touched by caret/keyboard
-- [ ] Re-render / lazy CM mount-teardown / preview↔edit: logical caret + direction preserved
-- [ ] Presentation remount does not collapse caret to block top
-- [ ] Unit coverage for position round-trip across remount seams; build green
+- [x] Logical document position covers prose, task/list, CM, and special blocks touched by caret/keyboard
+- [x] Re-render / lazy CM mount-teardown / preview↔edit: logical caret + direction preserved
+- [x] Presentation remount does not collapse caret to block top
+- [x] Unit coverage for position round-trip across remount seams; build green

@@ -16,7 +16,7 @@ import {
     isCmCodeBlock,
     renderCodeBlocksInScope,
 } from "../codeBlock/codeMirrorManager";
-import {getEditorRange, getSelectPosition, preserveEditorScroll, setRangeByWbr} from "../util/selection";
+import {getEditorRange, getSelectPosition, preserveEditorScroll, rememberProseDocumentPosition, setRangeByWbr} from "../util/selection";
 import {expandMarker} from "./expandMarker";
 import {scheduleRenderToc} from "../util/toc";
 import {processAfterRender} from "./process";
@@ -24,6 +24,8 @@ import {getMarkdown} from "../markdown/getMarkdown";
 import {fireContentInput} from "../util/saveToolbarState";
 
 export const input = (vditor: IVditor, range: Range, ignoreSpace = false, event?: InputEvent) => {
+    // ADR 0010: keep the logical IR position independent of marker remounts.
+    rememberProseDocumentPosition(vditor, vditor.ir.element, range);
     let blockElement = hasClosestBlock(range.startContainer);
     // 前后可以输入空格
     if (blockElement && !ignoreSpace && blockElement.getAttribute("data-type") !== "code-block") {
@@ -236,6 +238,7 @@ export const input = (vditor: IVditor, range: Range, ignoreSpace = false, event?
         }
 
         setRangeByWbr(vditor.ir.element, range);
+        rememberProseDocumentPosition(vditor, vditor.ir.element, getEditorRange(vditor));
         expandMarker(getEditorRange(vditor), vditor.ir.element);
     });
 

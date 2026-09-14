@@ -8,8 +8,8 @@
 
 **ui 观感：** Arrow/Home/End 跨界视口一次跟随选区；拒双击块边进入编辑；拒 Tab 困进 chrome。
 
-- [ ] Arrow / Home / End across prose↔CM (and task/list / special-block) boundaries: deterministic, one viewport follow
-- [ ] Enter / Backspace at boundaries: no lost selection side, no unexpected collapse to nearby block
-- [ ] Mouse enter/leave embedded surface uses same position contract (no double-click edge to edit)
-- [ ] Tab does not trap into chrome
-- [ ] Manual SMOKE note + build/suite green
+- [x] Arrow / Home / End across prose↔CM (and task/list / special-block) boundaries: deterministic, one viewport follow
+- [x] Enter / Backspace at boundaries: no lost selection side, no unexpected collapse to nearby block
+- [x] Mouse enter/leave embedded surface uses same position contract (no double-click edge to edit)
+- [x] Tab does not trap into chrome
+- [x] Manual SMOKE note + build/suite green

@@ -1,11 +1,13 @@
 import {Constants} from "../constants";
 import {tryFocusAdjacentCodeMirror} from "../codeBlock/codeMirrorNavigation";
 import {
+    focusCodeMirrorAtDocumentPosition,
     focusCodeMirror,
     getCodeMirrorView,
     isCmCodeBlock,
     isInsideCodeBlockChrome,
     isInsideCodeMirror,
+    isSpecialPreviewBlock,
 } from "../codeBlock/codeMirrorManager";
 import { focusCodeBlockChromeLanguage } from "../codeBlock/codeBlockChrome";
 import {isCtrl} from "../util/compatibility";
@@ -237,8 +239,10 @@ export const processKeydown = (vditor: IVditor, event: KeyboardEvent) => {
             const rangeStart = getSelectPosition(blockElement, vditor.ir.element, range).start;
             if (rangeStart === 0 || (rangeStart === 1 && blockElement.innerText.startsWith(Constants.ZWSP))) {
                 const prevBlock = blockElement.previousElementSibling as HTMLElement;
-                if (isCmCodeBlock(prevBlock)) {
-                    focusCodeMirror(prevBlock, false, vditor);
+                if (isCmCodeBlock(prevBlock) || isSpecialPreviewBlock(prevBlock)) {
+                    const view = getCodeMirrorView(prevBlock);
+                    const length = view?.state.doc.length ?? prevBlock.querySelector("pre code")?.textContent?.length ?? 0;
+                    focusCodeMirrorAtDocumentPosition(prevBlock, length, length, vditor);
                 } else {
                     range.selectNodeContents(prevBlock.querySelector(".vditor-ir__marker--pre code"));
                     range.collapse(false);

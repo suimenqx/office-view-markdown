@@ -1,4 +1,10 @@
-import { getCodeMirrorView, isInsideCodeBlockChrome, isInsideCodeMirror, restoreCodeMirrorFocus } from "../codeBlock/codeMirrorManager";
+import {
+    getCodeMirrorView,
+    isInsideCodeBlockChrome,
+    isInsideCodeMirror,
+    rememberCodeMirrorDocumentPosition,
+    restoreCodeMirrorFocus,
+} from "../codeBlock/codeMirrorManager";
 import { syncOutlineOnDocumentLoad } from "../outline/updateOutlineActive";
 import { accessLocalStorage } from "./compatibility";
 import { adjustEditorScrollBy, beginOpenDocumentRestore, endOpenDocumentRestore, getFocusStateKey, planOpenDocumentRestore, restoreDocumentScroll } from "./documentState";
@@ -8,6 +14,7 @@ import {
     getNodePath,
     getRangeCaretRect,
     getSelectionRangeInEditor,
+    rememberProseDocumentPosition,
     setSelectionByPath,
     setSelectionByPosition,
 } from "./selection";
@@ -376,6 +383,8 @@ const finishDocumentLoadScroll = (vditor: IVditor, state: CacheFocusState | null
 
 
 export const saveCacheFocus = (vditor: IVditor) => {
+    // ADR 0010: keep in-session logical identity alongside (not instead of)
+    // the ADR 0008 persisted cache focus state.
     const editor = vditor[vditor.currentMode].element;
     const activeElement = document.activeElement;
 
@@ -385,6 +394,7 @@ export const saveCacheFocus = (vditor: IVditor) => {
             const blockIndex = getCodeBlockIndex(editor, block);
             const view = getCodeMirrorView(block);
             if (view && blockIndex >= 0) {
+                rememberCodeMirrorDocumentPosition(vditor, block);
                 const selection = view.state.selection.main;
                 persistFocusState(vditor, finalizeFocusState(vditor, {
                     mode: vditor.currentMode,
@@ -399,6 +409,7 @@ export const saveCacheFocus = (vditor: IVditor) => {
     }
 
     const range = getEditorRange(vditor);
+    rememberProseDocumentPosition(vditor, editor, range);
     const { start, end } = getEditorTextOffset(editor, range);
     persistFocusState(vditor, finalizeFocusState(vditor, {
         mode: vditor.currentMode,

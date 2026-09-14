@@ -18,7 +18,7 @@ import { insertPastedCode } from "./processCode";
 import { getSelectText } from "./getSelectText";
 import { hasClosestByAttribute, hasClosestByMatchTag } from "./hasClosest";
 import { matchHotKey } from "./hotKey";
-import { getEditorRange } from "./selection";
+import { getEditorRange, rememberProseDocumentPosition } from "./selection";
 import { saveCacheFocus } from "./cacheFocus";
 import { clearActiveHeadingMarker } from "./updateActiveHeadingMarker";
 import { handleAutoSymbolPair } from "./autoSymbol";
@@ -395,6 +395,17 @@ export const hotkeyEvent = (vditor: IVditor, editorElement: HTMLElement) => {
 };
 
 export const selectEvent = (vditor: IVditor, editorElement: HTMLElement) => {
+    // ADR 0010: selection changes update the in-session logical position.  The
+    // open-document cache remains owned by cacheFocus.ts and is not replaced.
+    document.addEventListener("selectionchange", () => {
+        if (vditor.currentMode !== "wysiwyg" && vditor.currentMode !== "ir") {
+            return;
+        }
+        const range = getSelectionRangeInEditorForSession(editorElement);
+        if (range) {
+            rememberProseDocumentPosition(vditor, editorElement, range);
+        }
+    });
     editorElement.addEventListener("selectstart", (event: Event & { target: HTMLElement }) => {
         if (isInsideCodeMirror(event.target) || isInsideCodeBlockChrome(event.target)) {
             return;
@@ -410,4 +421,15 @@ export const selectEvent = (vditor: IVditor, editorElement: HTMLElement) => {
             });
         };
     });
+};
+
+const getSelectionRangeInEditorForSession = (editorElement: HTMLElement): Range | null => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || !selection.anchorNode || !selection.focusNode) {
+        return null;
+    }
+    if (!editorElement.contains(selection.anchorNode) || !editorElement.contains(selection.focusNode)) {
+        return null;
+    }
+    return selection.getRangeAt(0);
 };

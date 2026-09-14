@@ -14,7 +14,7 @@ import {
     renderCodeBlocksInScope,
     syncMathBlocksDisplayMode,
 } from "../codeBlock/codeMirrorManager";
-import { getEditorRange, setRangeByWbr } from "../util/selection";
+import { getEditorRange, rememberProseDocumentPosition, setRangeByWbr } from "../util/selection";
 import { expandMarker } from "../ir/expandMarker";
 import { scheduleRenderToc } from "../util/toc";
 import { afterRenderEvent } from "./afterRenderEvent";
@@ -22,6 +22,9 @@ import { ensureEditorBoundaryParagraphs } from "./renderDomByMd";
 import { previoueIsEmptyA } from "./inlineTag";
 
 export const input = (vditor: IVditor, range: Range, event?: InputEvent) => {
+    // ADR 0010: capture the logical prose position before Lute rebuilds the
+    // presentation tree and removes the old DOM marker.
+    rememberProseDocumentPosition(vditor, vditor.wysiwyg.element, range);
     const debug = vditor.options.debugger;
     const printSpinHtml = !!vditor.options.wysiwygInputPerf;
     const totalStart = debug ? performance.now() : 0;
@@ -298,6 +301,7 @@ export const input = (vditor: IVditor, range: Range, event?: InputEvent) => {
 
         // 设置光标
         setRangeByWbr(vditor.wysiwyg.element, range);
+        rememberProseDocumentPosition(vditor, vditor.wysiwyg.element, getEditorRange(vditor));
         markPostProcessStep("restore range by wbr");
         expandMarker(getEditorRange(vditor), vditor.wysiwyg.element);
         markPostProcessStep("expand marker");

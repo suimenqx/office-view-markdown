@@ -2,6 +2,14 @@ import { Constants } from "../constants";
 import { isChrome } from "./compatibility";
 import { adjustEditorScrollBy } from "./documentState";
 import { hasClosestBlock, hasClosestByClassName, hasClosestByMatchTag } from "./hasClosest";
+import {
+    createDocumentBlockKey,
+    createDocumentPosition,
+    getSessionDocumentPosition,
+    setSessionDocumentPosition,
+    type DocumentPosition,
+    type DocumentSurface,
+} from "./documentPosition";
 
 export const getEditorRange = (vditor: IVditor) => {
     let range: Range;
@@ -588,6 +596,214 @@ export const getSelectPosition = (selectElement: HTMLElement, editorElement: HTM
         position.end = position.start + range.toString().length;
     }
     return position;
+};
+
+const isCodeDocumentBlock = (element: Element) =>
+    element.getAttribute("data-type") === "code-block" || element.getAttribute("data-type") === "math-block";
+
+const getDocumentSurface = (element: Element): DocumentSurface => {
+    if (element.getAttribute("data-type") === "math-block") {
+        return "special";
+    }
+    if (element.getAttribute("data-type") === "code-block") {
+        const source = element.querySelector("pre code")?.className || "";
+        return /language-(math|mermaid|plantuml)(?:\s|$)/.test(source) ? "special" : "code";
+    }
+    if (element.classList.contains("vditor-task")) {
+        return "task";
+    }
+    return "prose";
+};
+
+const getDocumentPositionBlock = (node: Node, editor: HTMLElement): HTMLElement | null => {
+    let element = node.nodeType === Node.TEXT_NODE ? node.parentElement : node as HTMLElement;
+    let embedded = element?.closest?.("[data-type='code-block'], [data-type='math-block']") as HTMLElement | null;
+    let embeddedParent = embedded?.parentElement;
+    while (embeddedParent && embeddedParent !== editor) {
+        if (isCodeDocumentBlock(embeddedParent)) {
+            embedded = embeddedParent;
+        }
+        embeddedParent = embeddedParent.parentElement;
+    }
+    if (embedded && editor.contains(embedded)) {
+        return embedded;
+    }
+    const task = element?.closest?.("li.vditor-task") as HTMLElement | null;
+    if (task && editor.contains(task)) {
+        return task;
+    }
+    while (element && element !== editor) {
+        if (isCodeDocumentBlock(element) || element.classList.contains("vditor-task")) {
+            return element;
+        }
+        if (element.getAttribute("data-block") === "0") {
+            return element;
+        }
+        if (["P", "H1", "H2", "H3", "H4", "H5", "H6", "BLOCKQUOTE", "UL", "OL"].includes(element.tagName)) {
+            return element;
+        }
+        element = element.parentElement;
+    }
+    return null;
+};
+
+const collectDocumentPositionBlocks = (editor: HTMLElement) => {
+    const blocks: HTMLElement[] = [];
+    const candidates = editor.querySelectorAll<HTMLElement>(
+        "[data-type='code-block'], [data-type='math-block'], li.vditor-task, [data-block='0'], p, h1, h2, h3, h4, h5, h6, blockquote, ul, ol",
+    );
+    candidates.forEach((candidate) => {
+        if (getDocumentPositionBlock(candidate, editor) !== candidate || blocks.includes(candidate)) {
+            return;
+        }
+        blocks.push(candidate);
+    });
+    return blocks;
+};
+
+const getDocumentBlockKey = (editor: HTMLElement, block: HTMLElement) => {
+    const surface = getDocumentSurface(block);
+    const ordinal = collectDocumentPositionBlocks(editor)
+        .filter((candidate) => getDocumentSurface(candidate) === surface)
+        .indexOf(block);
+    return createDocumentBlockKey(surface, Math.max(0, ordinal));
+};
+
+export const getDocumentPositionBlockKey = (editor: HTMLElement, block: HTMLElement) =>
+    getDocumentBlockKey(editor, block);
+
+export const findDocumentPositionBlock = (editor: HTMLElement, blockKey: string) =>
+    collectDocumentPositionBlocks(editor).find((block) => getDocumentBlockKey(editor, block) === blockKey) || null;
+
+const getTextOffsetInBlock = (block: HTMLElement, node: Node, offset: number) => {
+    try {
+        const preRange = block.ownerDocument.createRange();
+        preRange.selectNodeContents(block);
+        preRange.setEnd(node, offset);
+        return preRange.toString().length;
+    } catch {
+        return 0;
+    }
+};
+
+const setRangeEndpointByTextOffset = (block: HTMLElement, range: Range, offset: number, start: boolean) => {
+    const walker = block.ownerDocument.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+    let remaining = Math.max(0, offset);
+    let lastText: Text | null = null;
+    let text: Node | null;
+    while ((text = walker.nextNode())) {
+        lastText = text as Text;
+        const length = text.textContent?.length || 0;
+        if (remaining <= length) {
+            if (start) {
+                range.setStart(text, remaining);
+            } else {
+                range.setEnd(text, remaining);
+            }
+            return;
+        }
+        remaining -= length;
+    }
+    if (lastText) {
+        if (start) {
+            range.setStart(lastText, lastText.textContent?.length || 0);
+        } else {
+            range.setEnd(lastText, lastText.textContent?.length || 0);
+        }
+    } else if (start) {
+        range.setStart(block, 0);
+    } else {
+        range.setEnd(block, block.childNodes.length);
+    }
+};
+
+export const setSelectionFocusWithAffinity = (range: Range, affinity: DocumentPosition["affinity"] = "forward") => {
+    const selection = window.getSelection();
+    if (!selection) {
+        return;
+    }
+    selection.removeAllRanges();
+    if (affinity !== "backward" || range.collapsed) {
+        selection.addRange(range);
+        return;
+    }
+    selection.collapse(range.endContainer, range.endOffset);
+    selection.extend(range.startContainer, range.startOffset);
+};
+
+export const getDocumentPositionFromRange = (
+    vditor: IVditor,
+    editor: HTMLElement,
+    inputRange?: Range,
+): DocumentPosition | null => {
+    const range = inputRange || getSelectionRangeInEditor(editor);
+    if (!range) {
+        return null;
+    }
+    const anchorSelection = window.getSelection();
+    const anchorNode = anchorSelection?.anchorNode && editor.contains(anchorSelection.anchorNode)
+        ? anchorSelection.anchorNode
+        : range.startContainer;
+    const headNode = anchorSelection?.focusNode && editor.contains(anchorSelection.focusNode)
+        ? anchorSelection.focusNode
+        : range.endContainer;
+    const anchorBlock = getDocumentPositionBlock(anchorNode, editor) || getDocumentPositionBlock(range.startContainer, editor);
+    const headBlock = getDocumentPositionBlock(headNode, editor) || getDocumentPositionBlock(range.endContainer, editor);
+    if (!anchorBlock || !headBlock) {
+        return null;
+    }
+    const anchorSurface = getDocumentSurface(anchorBlock);
+    const headSurface = getDocumentSurface(headBlock);
+    if (anchorSurface === "code" || anchorSurface === "special" || headSurface === "code" || headSurface === "special") {
+        return null;
+    }
+    const anchor = getTextOffsetInBlock(anchorBlock, anchorNode, anchorSelection?.anchorOffset ?? range.startOffset);
+    const head = getTextOffsetInBlock(headBlock, headNode, anchorSelection?.focusOffset ?? range.endOffset);
+    const anchorBlockKey = getDocumentBlockKey(editor, anchorBlock);
+    const headBlockKey = getDocumentBlockKey(editor, headBlock);
+    const affinity = anchor === head && anchorBlockKey === headBlockKey
+        ? "none"
+        : anchorBlockKey === headBlockKey
+            ? (anchor < head ? "forward" : "backward")
+            : range.startContainer === anchorNode
+                ? "forward"
+                : "backward";
+    return createDocumentPosition({
+        mode: vditor.currentMode,
+        surface: headSurface,
+        blockKey: headBlockKey,
+        anchor,
+        head,
+        presentation: "edit",
+        anchorBlockKey,
+        headBlockKey,
+        anchorSurface,
+        headSurface,
+    });
+};
+
+export const rememberProseDocumentPosition = (vditor: IVditor, editor: HTMLElement, range?: Range) => {
+    const position = getDocumentPositionFromRange(vditor, editor, range);
+    if (position) {
+        setSessionDocumentPosition(vditor, position);
+    }
+    return position;
+};
+
+export const restoreDocumentPositionInEditor = (vditor: IVditor, editor: HTMLElement, position = getSessionDocumentPosition(vditor)) => {
+    if (!position || position.mode !== vditor.currentMode || position.surface === "code" || position.surface === "special") {
+        return null;
+    }
+    const anchorBlock = findDocumentPositionBlock(editor, position.anchorBlockKey || position.blockKey);
+    const headBlock = findDocumentPositionBlock(editor, position.headBlockKey || position.blockKey);
+    if (!anchorBlock || !headBlock) {
+        return null;
+    }
+    const range = editor.ownerDocument.createRange();
+    setRangeEndpointByTextOffset(anchorBlock, range, position.anchor, true);
+    setRangeEndpointByTextOffset(headBlock, range, position.head, false);
+    setSelectionFocusWithAffinity(range, position.affinity);
+    return range;
 };
 
 export const setSelectionByPosition = (start: number, end: number, editor: HTMLElement) => {

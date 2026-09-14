@@ -7,13 +7,22 @@ import { expandMarker } from "../ir/expandMarker";
 import { Constants } from "../constants";
 import {
     getEditorRange,
+    findDocumentPositionBlock,
+    getDocumentPositionBlockKey,
     preserveEditorScroll,
+    rememberProseDocumentPosition,
+    restoreDocumentPositionInEditor,
     scrollCaretIntoEditorView,
-    scrollElementIntoEditorView,
     setRangeByWbr,
     setSelectionFocus,
 } from "../util/selection";
-import { isOpenDocumentRestoring } from "../util/documentState";
+import { adjustEditorScrollBy, isOpenDocumentRestoring } from "../util/documentState";
+import {
+    createDocumentPosition,
+    getSessionDocumentPosition,
+    setSessionDocumentPosition,
+    type DocumentPosition,
+} from "../util/documentPosition";
 import {
     commitAuthoredEdit,
     flushScheduledAuthoredEdit,
@@ -278,6 +287,126 @@ const getModeEditor = (vditor: IVditor) => {
         return vditor.ir.element;
     }
     return null;
+};
+
+const getCodeMirrorDocumentPosition = (
+    vditor: IVditor,
+    blockElement: HTMLElement,
+    anchor: number,
+    head: number,
+): DocumentPosition => {
+    const editor = getModeEditor(vditor);
+    const surface = isSpecialBlock(blockElement) ? "special" : "code";
+    const blockKey = editor ? getDocumentPositionBlockKey(editor, blockElement) : `${surface}:0`;
+    return createDocumentPosition({
+        mode: vditor.currentMode,
+        surface,
+        blockKey,
+        anchor,
+        head,
+        presentation: isSpecialBlock(blockElement)
+            ? (blockElement.classList.contains(CM_EDITING_CLASS) ? "edit" : "preview")
+            : undefined,
+    });
+};
+
+/** ADR 0010: capture CM identity before lazy teardown, blur, or DOM replacement. */
+export const rememberCodeMirrorDocumentPosition = (
+    vditor: IVditor,
+    blockElement: HTMLElement,
+    anchor?: number,
+    head?: number,
+) => {
+    const view = bindings.get(blockElement)?.view;
+    if (!view) {
+        return null;
+    }
+    const selection = view.state.selection.main;
+    const position = getCodeMirrorDocumentPosition(
+        vditor,
+        blockElement,
+        anchor ?? selection.anchor,
+        head ?? selection.head,
+    );
+    setSessionDocumentPosition(vditor, position);
+    return position;
+};
+
+const scrollCodeMirrorCaretIntoEditorView = (vditor: IVditor, view: EditorView) => {
+    const coords = view.coordsAtPos(view.state.selection.main.head, 1);
+    const editor = getModeEditor(vditor);
+    if (!coords || !editor) {
+        return;
+    }
+    const editorRect = editor.getBoundingClientRect();
+    const padding = 24;
+    if (coords.top < editorRect.top + padding) {
+        adjustEditorScrollBy(vditor, coords.top - editorRect.top - padding);
+    } else if (coords.bottom > editorRect.bottom - padding) {
+        adjustEditorScrollBy(vditor, coords.bottom - editorRect.bottom + padding);
+    }
+};
+
+/** Boundary entry point: restore exact CM offsets and follow the caret once. */
+export const focusCodeMirrorAtDocumentPosition = (
+    blockElement: HTMLElement,
+    anchor: number,
+    head: number,
+    vditor: IVditor,
+    followCaret = true,
+) => {
+    if (isSpecialPreviewBlock(blockElement)) {
+        enterSpecialBlockEdit(vditor, blockElement, false);
+    }
+    if (!isCmCodeBlock(blockElement) && !blockElement.classList.contains(CM_EDITING_CLASS)) {
+        return false;
+    }
+    const position = getCodeMirrorDocumentPosition(vditor, blockElement, anchor, head);
+    setSessionDocumentPosition(vditor, position);
+    restoreCodeMirrorFocus(blockElement, position.anchor, position.head, vditor);
+    if (followCaret) {
+        const view = bindings.get(blockElement)?.view;
+        if (view) {
+            scrollCodeMirrorCaretIntoEditorView(vditor, view);
+        }
+    }
+    return true;
+};
+
+const restoreSessionDocumentPosition = (vditor: IVditor, followCaret = true) => {
+    const position = getSessionDocumentPosition(vditor);
+    const editor = getModeEditor(vditor);
+    if (!position || !editor || position.mode !== vditor.currentMode) {
+        return false;
+    }
+    if (position.surface === "code" || position.surface === "special") {
+        const block = findDocumentPositionBlock(editor, position.blockKey);
+        if (!block) {
+            return false;
+        }
+        if (position.surface === "special" && position.presentation === "preview" && isSpecialPreviewBlock(block)) {
+            return true;
+        }
+        if (position.surface === "special" && position.presentation === "edit" && isSpecialPreviewBlock(block)) {
+            enterSpecialBlockEdit(vditor, block, false);
+        }
+        return focusCodeMirrorAtDocumentPosition(block, position.anchor, position.head, vditor, followCaret);
+    }
+    const range = restoreDocumentPositionInEditor(vditor, editor, position);
+    if (!range) {
+        return false;
+    }
+    editor.focus({ preventScroll: true });
+    if (followCaret) {
+        scrollCaretIntoEditorView(vditor, range);
+    }
+    return true;
+};
+
+export const restoreSessionDocumentPositionAfterRemount = (vditor: IVditor, followCaret = true) => {
+    // ADR 0010: remount restores the logical position; it never calls
+    // focusCodeMirror(..., true), which would collapse a live caret to 0.
+    return restoreSessionDocumentPosition(vditor, followCaret);
 };
 
 const getCmBlockSelector = (mode: string) => {
@@ -702,6 +831,7 @@ const exitSpecialBlockEdit = (vditor: IVditor, blockElement: HTMLElement) => {
     if (!blockElement.classList.contains(CM_EDITING_CLASS)) {
         return;
     }
+    const remembered = rememberCodeMirrorDocumentPosition(vditor, blockElement);
     const binding = bindings.get(blockElement);
     const finalText = binding?.view.state.doc.toString();
     if (binding) {
@@ -731,6 +861,9 @@ const exitSpecialBlockEdit = (vditor: IVditor, blockElement: HTMLElement) => {
     if (isMathBlockElement(blockElement)) {
         ensureMathBlockPreviewMode(blockElement);
     }
+    if (remembered) {
+        setSessionDocumentPosition(vditor, { ...remembered, presentation: "preview" });
+    }
     flushScheduledAuthoredEdit(vditor, { intent: "specialBlock" });
 };
 
@@ -742,7 +875,13 @@ export const enterSpecialBlockEdit = (vditor: IVditor, blockElement: HTMLElement
     }
     if (block.classList.contains(CM_EDITING_CLASS)) {
         if (focus) {
-            focusCodeMirror(block, true, vditor);
+            const remembered = getSessionDocumentPosition(vditor);
+            const blockKey = getCodeMirrorDocumentPosition(vditor, block, 0, 0).blockKey;
+            if (remembered && remembered.blockKey === blockKey && remembered.surface === "special") {
+                focusCodeMirrorAtDocumentPosition(block, remembered.anchor, remembered.head, vditor);
+            } else {
+                focusCodeMirror(block, true, vditor);
+            }
         }
         return true;
     }
@@ -755,7 +894,13 @@ export const enterSpecialBlockEdit = (vditor: IVditor, blockElement: HTMLElement
         rerenderSpecialPreview(parts.preview, vditor, binding.view.state.doc.toString());
     }
     if (focus) {
-        focusCodeMirror(block, true, vditor);
+        const remembered = getSessionDocumentPosition(vditor);
+        const blockKey = getCodeMirrorDocumentPosition(vditor, block, 0, 0).blockKey;
+        if (remembered && remembered.blockKey === blockKey && remembered.surface === "special") {
+            focusCodeMirrorAtDocumentPosition(block, remembered.anchor, remembered.head, vditor);
+        } else {
+            focusCodeMirror(block, true, vditor);
+        }
     }
     return true;
 };
@@ -967,11 +1112,9 @@ const focusEditorWithoutScroll = (editor: HTMLElement) => {
     editor.focus({ preventScroll: true });
 };
 
-const scrollEditorAfterBlockInsert = (vditor: IVditor, range: Range, scrollTarget?: HTMLElement) => {
+const scrollEditorAfterBlockInsert = (vditor: IVditor, range: Range) => {
     requestAnimationFrame(() => {
-        if (scrollTarget) {
-            scrollElementIntoEditorView(vditor, scrollTarget);
-        }
+        // ADR 0010: follow the caret once; do not jump to the containing block.
         scrollCaretIntoEditorView(vditor, range);
     });
 };
@@ -984,8 +1127,12 @@ const cmDomEventHandlers = (vditor: IVditor, blockElement: HTMLElement, binding:
     mousedown: (event: Event) => {
         event.stopPropagation();
     },
-    focus: () => false,
+    focus: () => {
+        rememberCodeMirrorDocumentPosition(vditor, blockElement);
+        return false;
+    },
     blur: () => {
+        rememberCodeMirrorDocumentPosition(vditor, blockElement);
         window.setTimeout(() => {
             if (!bindings.has(blockElement) || binding.view.hasFocus) {
                 return;
@@ -1072,9 +1219,9 @@ const cmDomEventHandlers = (vditor: IVditor, blockElement: HTMLElement, binding:
 
 const canFocusAdjacentEditorBlock = (
     blockElement: HTMLElement,
-    direction: "up" | "down",
+    direction: "up" | "down" | "left" | "right",
 ): boolean => {
-    const adjacentElement = direction === "up"
+    const adjacentElement = direction === "up" || direction === "left"
         ? blockElement.previousElementSibling as HTMLElement | null
         : blockElement.nextElementSibling as HTMLElement | null;
     if (!adjacentElement) {
@@ -1086,7 +1233,7 @@ const canFocusAdjacentEditorBlock = (
 const focusAdjacentEditorBlock = (
     vditor: IVditor,
     blockElement: HTMLElement,
-    direction: "up" | "down",
+    direction: "up" | "down" | "left" | "right",
 ) => {
     const editor = getModeEditor(vditor);
     if (!editor) {
@@ -1099,6 +1246,8 @@ const focusAdjacentEditorBlock = (
         range.selectNodeContents(element);
         range.collapse(toStart);
         setSelectionFocus(range);
+        rememberProseDocumentPosition(vditor, editor, range);
+        scrollCaretIntoEditorView(vditor, range);
         if (vditor.currentMode === "ir") {
             expandMarker(range, vditor.ir.element);
             syncIrMathBlockAfterExpand(vditor, range);
@@ -1116,16 +1265,21 @@ const focusAdjacentEditorBlock = (
         const range = getEditorRange(vditor);
         setRangeByWbr(editor, range);
         setSelectionFocus(range);
-        const newBlock = position === "before"
-            ? blockElement.previousElementSibling
-            : blockElement.nextElementSibling;
-        scrollEditorAfterBlockInsert(vditor, range, newBlock instanceof HTMLElement ? newBlock : undefined);
+        scrollEditorAfterBlockInsert(vditor, range);
     };
 
-    if (direction === "up") {
+    const focusCodeBlockPosition = (element: HTMLElement, atEnd: boolean) => {
+        const view = getCodeMirrorView(element);
+        const length = view?.state.doc.length
+            ?? element.querySelector("pre code")?.textContent?.length
+            ?? 0;
+        focusCodeMirrorAtDocumentPosition(element, atEnd ? length : 0, atEnd ? length : 0, vditor);
+    };
+
+    if (direction === "up" || direction === "left") {
         const previousElement = blockElement.previousElementSibling as HTMLElement | null;
-        if (isCmCodeBlock(previousElement)) {
-            focusCodeMirror(previousElement, false, vditor);
+        if (isCmCodeBlock(previousElement) || isSpecialPreviewBlock(previousElement)) {
+            focusCodeBlockPosition(previousElement, true);
         } else if (!previousElement ||
             isTableBlockElement(previousElement) ||
             previousElement.getAttribute("data-type")) {
@@ -1137,8 +1291,8 @@ const focusAdjacentEditorBlock = (
     }
 
     const nextElement = blockElement.nextElementSibling as HTMLElement | null;
-    if (isCmCodeBlock(nextElement)) {
-        focusCodeMirror(nextElement, true, vditor);
+    if (isCmCodeBlock(nextElement) || isSpecialPreviewBlock(nextElement)) {
+        focusCodeBlockPosition(nextElement, false);
     } else if (!nextElement ||
         isTableBlockElement(nextElement) ||
         nextElement.getAttribute("data-type")) {
@@ -1152,7 +1306,7 @@ const exitCodeMirrorToAdjacentBlock = (
     view: EditorView,
     vditor: IVditor,
     blockElement: HTMLElement,
-    direction: "up" | "down",
+    direction: "up" | "down" | "left" | "right",
 ) => {
     view.contentDOM.blur();
     focusAdjacentEditorBlock(vditor, blockElement, direction);
@@ -1199,6 +1353,55 @@ const buildCodeMirrorNavigationKeymap = (vditor: IVditor, blockElement: HTMLElem
                 return true;
             },
         },
+        // ADR 0010: horizontal and Home/End edges use the same boundary
+        // contract as vertical navigation; shifted selections stay in CM.
+        {
+            key: "ArrowLeft",
+            run: (view) => {
+                const selection = view.state.selection.main;
+                if (!selection.empty || selection.head !== 0 || !canFocusAdjacentEditorBlock(blockElement, "left")) {
+                    return false;
+                }
+                exitCodeMirrorToAdjacentBlock(view, vditor, blockElement, "left");
+                return true;
+            },
+        },
+        {
+            key: "ArrowRight",
+            run: (view) => {
+                const selection = view.state.selection.main;
+                const length = view.state.doc.length;
+                if (!selection.empty || selection.head !== length || !canFocusAdjacentEditorBlock(blockElement, "right")) {
+                    return false;
+                }
+                exitCodeMirrorToAdjacentBlock(view, vditor, blockElement, "right");
+                return true;
+            },
+        },
+        {
+            key: "Home",
+            run: (view) => {
+                const selection = view.state.selection.main;
+                const line = view.state.doc.lineAt(selection.head);
+                if (!selection.empty || line.number !== 1 || selection.head !== line.from || !canFocusAdjacentEditorBlock(blockElement, "left")) {
+                    return false;
+                }
+                exitCodeMirrorToAdjacentBlock(view, vditor, blockElement, "left");
+                return true;
+            },
+        },
+        {
+            key: "End",
+            run: (view) => {
+                const selection = view.state.selection.main;
+                const line = view.state.doc.lineAt(selection.head);
+                if (!selection.empty || line.number !== view.state.doc.lines || selection.head !== line.to || !canFocusAdjacentEditorBlock(blockElement, "right")) {
+                    return false;
+                }
+                exitCodeMirrorToAdjacentBlock(view, vditor, blockElement, "right");
+                return true;
+            },
+        },
         {
             key: "Ctrl-Enter",
             mac: "Cmd-Enter",
@@ -1218,8 +1421,7 @@ const buildCodeMirrorNavigationKeymap = (vditor: IVditor, blockElement: HTMLElem
                 const range = getEditorRange(vditor);
                 setRangeByWbr(editor, range);
                 setSelectionFocus(range);
-                const newBlock = blockElement.nextElementSibling;
-                scrollEditorAfterBlockInsert(vditor, range, newBlock instanceof HTMLElement ? newBlock : undefined);
+                scrollEditorAfterBlockInsert(vditor, range);
                 return true;
             },
         },
@@ -1255,8 +1457,10 @@ export const removeCmCodeBlock = (vditor: IVditor, blockElement: HTMLElement) =>
     const range = getEditorRange(vditor);
 
     if (previousElement) {
-        if (isCmCodeBlock(previousElement)) {
-            focusCodeMirror(previousElement, false, vditor);
+        if (isCmCodeBlock(previousElement) || isSpecialPreviewBlock(previousElement)) {
+            const view = getCodeMirrorView(previousElement);
+            const length = view?.state.doc.length ?? previousElement.querySelector("pre code")?.textContent?.length ?? 0;
+            focusCodeMirrorAtDocumentPosition(previousElement, length, length, vditor);
         } else {
             range.selectNodeContents(previousElement);
             range.collapse(false);
@@ -1267,8 +1471,8 @@ export const removeCmCodeBlock = (vditor: IVditor, blockElement: HTMLElement) =>
             }
         }
     } else if (nextElement) {
-        if (isCmCodeBlock(nextElement)) {
-            focusCodeMirror(nextElement, true, vditor);
+        if (isCmCodeBlock(nextElement) || isSpecialPreviewBlock(nextElement)) {
+            focusCodeMirrorAtDocumentPosition(nextElement, 0, 0, vditor);
         } else {
             range.selectNodeContents(nextElement);
             range.collapse(true);
@@ -1308,6 +1512,9 @@ export const deactivateAllCodeMirrors = (vditor: IVditor) => {
     }
     for (const block of editor.querySelectorAll(getCodeBlockSelector(vditor.currentMode))) {
         const blockElement = block as HTMLElement;
+        if (bindings.get(blockElement)?.view.hasFocus) {
+            rememberCodeMirrorDocumentPosition(vditor, blockElement);
+        }
         if (bindings.has(blockElement)) {
             destroyCodeMirror(blockElement);
         }
@@ -1340,6 +1547,9 @@ const collectCodeBlocksInScope = (vditor: IVditor, scope: HTMLElement) => {
 export const deactivateCodeMirrorsInScope = (vditor: IVditor, scope: HTMLElement) => {
     deactivateInlineMathEditorsInScope(scope);
     for (const blockElement of collectCodeBlocksInScope(vditor, scope)) {
+        if (bindings.get(blockElement)?.view.hasFocus) {
+            rememberCodeMirrorDocumentPosition(vditor, blockElement);
+        }
         if (bindings.has(blockElement)) {
             destroyCodeMirror(blockElement);
         }
@@ -1508,6 +1718,11 @@ export const remountCodeMirrorsAfterDomReplace = (vditor: IVditor) => {
         return;
     }
     renderCodeBlocks(vditor);
+    window.requestAnimationFrame(() => {
+        // ADR 0010: restore after the new presentation tree exists, preserving
+        // the CM selection instead of collapsing it to the block start.
+        restoreSessionDocumentPositionAfterRemount(vditor);
+    });
 };
 
 const cleanupStaleCmArtifacts = (blockElement: HTMLElement) => {
@@ -1584,6 +1799,9 @@ const mountCodeMirror = (blockElement: HTMLElement, vditor: IVditor, force = fal
             buildCodeMirrorNavigationKeymap(vditor, blockElement),
             languageCompartment.of([]),
             EditorView.updateListener.of((update) => {
+                if (update.selectionSet || update.focusChanged) {
+                    rememberCodeMirrorDocumentPosition(vditor, blockElement);
+                }
                 if (binding.updating || !update.docChanged) {
                     return;
                 }

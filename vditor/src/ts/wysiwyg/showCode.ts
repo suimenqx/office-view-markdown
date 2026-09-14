@@ -44,6 +44,7 @@ const showInlineCode = (previewElement: HTMLElement, vditor: IVditor, first = tr
     return true;
 };
 
+/** ADR 0010: a single click enters the same logical edit position; a second click is not required. */
 /** 点击预览区：特殊块进入 CodeMirror 编辑，普通块聚焦已有 CM；行内 math/html 展开源码 code */
 export const showCode = (previewElement: HTMLElement, vditor: IVditor, first = true) => {
     const blockElement = previewElement.closest(

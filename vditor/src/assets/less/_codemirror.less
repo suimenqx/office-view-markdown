@@ -42,6 +42,7 @@
   }
 
   .cm-editor {
+    // ADR 0010: the embedded host owns the single focus token.
     outline: none;
     flex: 1 1 auto;
     min-height: 1.35em;
@@ -252,6 +253,13 @@
     visibility: visible;
     pointer-events: auto;
   }
+}
+
+// ADR 0010: CM focus and the surrounding block share one outer focus ring.
+// The inner CM outline stays disabled so surface + CM rings cannot stack.
+:is(.vditor-wysiwyg__block, .vditor-ir__node, [data-type="code-block"], [data-type="math-block"]):has(.cm-editor.cm-focused) {
+  outline: 2px solid var(--editor-focus-token, var(--vscode-focusBorder, var(--info)));
+  outline-offset: 2px;
 }
 
 .vditor-cm-chrome {

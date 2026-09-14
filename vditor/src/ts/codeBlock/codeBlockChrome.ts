@@ -195,6 +195,17 @@ const bindCopyButton = (copyBtn: HTMLButtonElement, performCopy: () => Promise<b
 const bindChromeEventIsolation = (root: HTMLElement) => {
     for (const eventName of ["input", "keydown", "keyup"]) {
         root.addEventListener(eventName, (event) => {
+            if (eventName === "keydown" && (event as KeyboardEvent).key === "Tab") {
+                // ADR 0010: chrome is a waypoint, never a keyboard trap.
+                const block = root.closest("[data-type='code-block'], [data-type='math-block']") as HTMLElement | null;
+                const view = block ? getCodeMirrorView(block) : undefined;
+                if (view) {
+                    event.preventDefault();
+                    closeLangPanel();
+                    closeThemePanel();
+                    view.contentDOM.focus({ preventScroll: true });
+                }
+            }
             event.stopPropagation();
         });
     }

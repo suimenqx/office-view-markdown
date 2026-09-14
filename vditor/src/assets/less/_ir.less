@@ -5,6 +5,13 @@
   position: relative;
   width: 100%;
 
+  // ADR 0010: IR prose shares the same selection family as CodeMirror.
+  .vditor-reset::selection,
+  .vditor-reset *::selection {
+    background: var(--editor-selection-bg, var(--cm-selection-bg-focused)) !important;
+    color: var(--editor-selection-fg, inherit);
+  }
+
   pre.vditor-reset {
     // 首块与编辑器顶部保持间距（标题除外，沿用全局 24px）
     // boundary 哨兵不占空间但可能是 first-child，需用相邻兄弟选择器兜底

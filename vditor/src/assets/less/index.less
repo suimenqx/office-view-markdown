@@ -92,6 +92,9 @@
   --warning: var(--vscode-editorWarning-foreground, var(--vscode-charts-yellow, #9a6700));
   --info: var(--vscode-textLink-foreground, var(--vscode-charts-blue, #0969da));
   --error: var(--error-color, var(--vscode-errorForeground, var(--vscode-charts-red, @errorColor)));
+  --editor-focus-token: var(--vscode-focusBorder, var(--info));
+  --editor-selection-bg: var(--vscode-editor-selectionBackground, var(--cm-selection-bg-focused, color-mix(in srgb, var(--info) 28%, transparent)));
+  --editor-selection-fg: var(--vscode-editor-selectionForeground, inherit);
 
   --ui-font-size: 13px;
   --editor-font-size: var(--vscode-editor-font-size, 16px);
