@@ -42,13 +42,13 @@ First acceptance surface: custom editor only — `office-view-markdown.markdownV
 
 ## Acceptance Criteria
 
-### ui 观感约束（与 ADR 0012 对应，**provisional** — 待 Studio notes）
+### ui 观感约束（与 ADR 0012 一一对应，Studio 锁定）
 
-1. **主题同族 affordance**：悬停/焦点环与现有选区/主题同族（theme-affine），勿为 link/wiki/HTML 各开一套系统色。
-2. **激活确定**：同目标种类下，同手势（click / modifier / double-click / Alt+Enter — 具体表待 Studio）→ 同动作；勿依赖“碰巧装了 host callback”才可预期。
-3. **保存后焦点一次落稳**：save/cancel → 经 ADR 0010 焦点锚一次回到逻辑源位，勿先落在替换 DOM 再漂移。
+1. **点击语法统一**：link / wiki / image / HTML 单击进编辑或打开同一套手势；勿一类单击跳、一类必须双击。
+2. **修饰键可见**：Cmd/Ctrl+Click 打开时不先闪编辑环；普通单击才出编辑 affordance。
+3. **回焦一次**：关闭 popover / 保存后焦点锚一次落回对象，勿跳到段首或块顶。
 
-反例（一律拒）：按类型各写一套 click 语法当产品真相、HTML save 绕开 ADR 0009、保存后无锚点焦点、为内联对象单开第二预览面。验收只认 `office-view-markdown.markdownViewer`。Studio notes 到达前本节为建议约束，不阻塞 forge 按 ADR 0012 契约开工。
+反例（一律拒）：wiki 另套手势、图点一下全选正文、HTML 保存后选区消失。异步图世代守卫本波不进。验收只认 `office-view-markdown.markdownViewer`。
 
 ### 功能验收
 

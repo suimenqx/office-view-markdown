@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-**ui 观感：** provisional — 激活确定；保存后焦点一次落稳（ADR 0010）；theme-affine affordance。
+**ui 观感：** 修饰键可见（Cmd/Ctrl+Click 不闪编辑环）；回焦一次落回对象，勿段首/块顶。
 
 - [ ] Activation policy uses document-target (not ad-hoc per-file click grammar as product truth)
 - [ ] Edit save: one ADR 0009 undo/dirty unit; no render-only history from node rewrite

@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-**ui 观感：** provisional — 目标种类可区分但不另开皮肤；theme-affine affordance 挂钩在 target，不在各文件私有样式。
+**ui 观感：** 点击语法统一——同类对象同一套手势，勿一类单击跳、一类必须双击。
 
 - [ ] Document-target type covers link / link-ref / wiki / image / HTML
 - [ ] Display vs destination (source ranges) explicit on the target

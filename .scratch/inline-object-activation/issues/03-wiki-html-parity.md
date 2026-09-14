@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-**ui 观感：** provisional — wiki/HTML 不另开交互方言；HTML save 后焦点落稳同 link。
+**ui 观感：** wiki/HTML 不另套手势；HTML 保存后选区不消失。
 
 - [ ] Wiki host-open + path/fragment edit use document-target (same contract as ordinary link)
 - [ ] Link-reference edits use the same contract
