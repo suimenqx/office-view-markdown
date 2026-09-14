@@ -7,13 +7,13 @@ import { getHistoryMaxWaitFactor, getHistoryRecordWait } from "../util/historySc
 import { matchHotkeyNew } from "../util/hotKey";
 import { formatMs, logPerf } from "../util/log";
 import { refreshGitHubAlertPresentation } from "../markdown/alertRefresh";
+import { commitAuthoredEdit } from "../util/editTransaction";
 
 
 export function handlerHistoryEvent(event: KeyboardEvent, vditor: IVditor,): boolean {
 
     if (matchHotkeyNew("^s", event) || matchHotkeyNew("^x", event)) {
-        clearTimeout(vditor.wysiwyg.afterRenderTimeoutId);
-        recordHistory(vditor)
+        commitAuthoredEdit(vditor, { intent: "prose" });
     }
 
     return false;
@@ -39,9 +39,19 @@ export const afterRenderEvent = (vditor: IVditor, options: {
         vditor.wysiwyg.afterRenderLastAt,
         vditor.options.undoDelay,
         getHistoryMaxWaitFactor(vditor),
+        options.enableAddUndoStack !== false,
     );
     vditor.wysiwyg.afterRenderTimeoutId = window.setTimeout(() => {
-        recordHistory(vditor, options);
+        if (options.enableAddUndoStack === false) {
+            recordHistory(vditor, options);
+            return;
+        }
+        commitAuthoredEdit(vditor, {
+            enableAddUndoStack: options.enableAddUndoStack,
+            enableHint: options.enableHint,
+            enableInput: options.enableInput,
+            intent: "prose",
+        });
     }, wait);
 };
 

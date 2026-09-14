@@ -8,10 +8,12 @@
 
 **ui 观感：** afterRender 散文路径按一意图分组（一次 undo / 一次 dirty）。
 
-- [ ] A single prose intent via afterRender debounce = one undo unit / one dirty pulse
-- [ ] Ctrl+Z undoes that burst once; no double-dirty from delay+blur
-- [ ] No second transaction coordinator; 0009 contract consumed not rewritten
-- [ ] Presentation-only remounts still invent zero history
-- [ ] Light GUI SMOKE (extend semantic-edit-tx family) + unit where seams allow; build green
+- [x] A single prose intent via afterRender debounce = one undo unit / one dirty pulse
+- [x] Ctrl+Z undoes that burst once; no double-dirty from delay+blur
+- [x] No second transaction coordinator; 0009 contract consumed not rewritten
+- [x] Presentation-only remounts still invent zero history
+- [x] Light GUI SMOKE (extend semantic-edit-tx family) + unit where seams allow; build green
 
 ## Comments
+
+- 2026-09-14 (Asia/Shanghai): Made the WYSIWYG afterRender path coalesce until idle, routed authored afterRender and buffered flushes through the existing ADR 0009 `commitAuthoredEdit({ intent: "prose" })` boundary, preserved `enableAddUndoStack: false`, and added unit/SMOKE coverage for one-burst undo and fingerprint dedupe.

@@ -1,6 +1,4 @@
-import { recordHistory as recordIrHistory } from "../ir/process";
-import { recordHistory as recordWysiwygHistory } from "../wysiwyg/afterRenderEvent";
-import { clearPendingHistoryTimeout } from "./instantHistory";
+import { commitAuthoredEdit } from "./editTransaction";
 import {
     clearHistoryInputBuffer,
     historyInputBufferHasText,
@@ -22,12 +20,12 @@ const defaultRecordOptions = {
 };
 
 export const flushBufferedHistory = (vditor: IVditor, options = defaultRecordOptions) => {
-    clearPendingHistoryTimeout(vditor);
-    if (vditor.currentMode === "wysiwyg") {
-        recordWysiwygHistory(vditor, options);
-    } else if (vditor.currentMode === "ir") {
-        recordIrHistory(vditor, options);
-    }
+    return commitAuthoredEdit(vditor, {
+        enableAddUndoStack: options.enableAddUndoStack,
+        enableHint: options.enableHint,
+        enableInput: options.enableInput,
+        intent: "prose",
+    });
 };
 
 export const flushBufferedHistoryOnClick = (vditor: IVditor) => {

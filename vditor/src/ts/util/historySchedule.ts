@@ -69,13 +69,18 @@ export const getHistoryMaxWaitFactor = (vditor: IVditor): number => {
 /**
  * 连续输入时 debounce 会被不断重置。
  * 未超限时返回 undoDelay；超过 maxWait 后返回 0 强制入栈。
- * 超大文档（unlimited）始终返回 undoDelay，只靠停笔触发保存。
+ * coalesceUntilIdle 用于单一编辑意图：始终等到 undoDelay 空闲，不能
+ * 因累计输入时长把一个普通散文 burst 切成多个 undo 单元。
  */
 export const getHistoryRecordWait = (
     lastRecordAt: number,
     undoDelay: number,
     maxWaitFactor: number = DEFAULT_HISTORY_MAX_WAIT_FACTOR,
+    coalesceUntilIdle = false,
 ): number => {
+    if (coalesceUntilIdle) {
+        return undoDelay;
+    }
     if (isUnlimitedHistoryDefer(maxWaitFactor)) {
         return undoDelay;
     }
