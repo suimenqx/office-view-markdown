@@ -8,9 +8,9 @@
 
 **ui 观感：** 高亮同族；Find Next/点选一次落稳（ADR 0010 文档位）。
 
-- [ ] FindBar consumes document index; single honest match count
-- [ ] Find Next / Previous across prose + inline + embedded code/math
-- [ ] Reveal mount does not add/remove/reorder hits or change count
-- [ ] Navigate-to-match uses ADR 0010 document position
-- [ ] No FindBar skin redesign; chrome reused
-- [ ] Manual SMOKE note + build/suite green
+- [x] FindBar consumes document index; single honest match count
+- [x] Find Next / Previous across prose + inline + embedded code/math
+- [x] Reveal mount does not add/remove/reorder hits or change count
+- [x] Navigate-to-match uses ADR 0010 document position
+- [x] No FindBar skin redesign; chrome reused
+- [x] Manual SMOKE note + build/suite green

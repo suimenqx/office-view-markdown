@@ -8,8 +8,8 @@
 
 **ui 观感：** Replace 走 0009 一次 dirty/undo；跳转落稳同 Find。
 
-- [ ] Replace Current: one ADR 0009 undo unit; position restore via ADR 0010
-- [ ] Replace All: one ADR 0009 undo unit for the command; count/index stay coherent
-- [ ] Replacement uses shared source ranges (same identity as Find), not divergent DOM/CM mutation paths
-- [ ] No render-only history / extra dirty from reveal mounts during replace
-- [ ] Unit + SMOKE: replace + undo + position; build green
+- [x] Replace Current: one ADR 0009 undo unit; position restore via ADR 0010
+- [x] Replace All: one ADR 0009 undo unit for the command; count/index stay coherent
+- [x] Replacement uses shared source ranges (same identity as Find), not divergent DOM/CM mutation paths
+- [x] No render-only history / extra dirty from reveal mounts during replace
+- [x] Unit + SMOKE: replace + undo + position; build green

@@ -8,8 +8,8 @@
 
 **ui 观感：** 计数诚实——索引命中数 = Find 展示计数；挂载不得改集。
 
-- [ ] Authored-stream index covers prose, cross-inline markup, embedded code/math source ranges
-- [ ] Presentation chrome / hidden / aria-hidden excluded by policy
-- [ ] Match spanning emphasis/link (sibling inline) boundaries is one hit
-- [ ] Index / result-set identity stable across reveal-only mount
-- [ ] Unit coverage for source-range hits + exclusion policy; build green
+- [x] Authored-stream index covers prose, cross-inline markup, embedded code/math source ranges
+- [x] Presentation chrome / hidden / aria-hidden excluded by policy
+- [x] Match spanning emphasis/link (sibling inline) boundaries is one hit
+- [x] Index / result-set identity stable across reveal-only mount
+- [x] Unit coverage for source-range hits + exclusion policy; build green
