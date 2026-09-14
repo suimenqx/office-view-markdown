@@ -28,6 +28,10 @@ const DOCUMENT_HISTORY_KEYS = new Set([
     "Mod-Y",
     "Mod-Shift-z",
     "Mod-Shift-Z",
+    "Ctrl-Shift-z",
+    "Ctrl-Shift-Z",
+    "Ctrl-y",
+    "Ctrl-Y",
 ]);
 
 const isDocumentHistoryBinding = (binding: KeyBinding) => {
