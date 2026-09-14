@@ -17,6 +17,12 @@ import {
     setGlobalLocalStorageSetting,
 } from "../util/globalLocalStorageSettings";
 import { commitAuthoredEdit } from "../util/editTransaction";
+import {
+    createDocumentTargetForElement,
+    restoreDocumentTargetFocus,
+    shouldEditDocumentTarget,
+} from "../util/linkClick";
+import type { DocumentTarget } from "../util/documentTarget";
 import { telemetry } from "../util/telemetry";
 
 const HTML_EDITOR_POPOVER_CLASS = "vditor-popover--html-inline";
@@ -50,6 +56,7 @@ type HtmlEditorPopoverBinding = {
 let activeHtmlEditorPopover: HtmlEditorPopoverBinding | null = null;
 let positionAnchor: HTMLElement | null = null;
 let positionVditor: IVditor | null = null;
+let activeHtmlDocumentTarget: DocumentTarget | null = null;
 let scrollRepositionHandler: (() => void) | null = null;
 
 const destroyHtmlEditorCodeMirror = () => {
@@ -239,9 +246,19 @@ const closeHtmlEditorPopover = (
     removedParent?: HTMLElement | null,
     removedNext?: Node | null,
 ) => {
+    const documentTarget = activeHtmlDocumentTarget;
+    activeHtmlDocumentTarget = null;
     hideHtmlEditorPopover(vditor);
     if (removedParent !== undefined) {
-        restoreFocusAfterHtmlRemove(vditor, removedParent, removedNext ?? null);
+        if (documentTarget) {
+            restoreDocumentTargetFocus(vditor, documentTarget, null);
+        } else {
+            restoreFocusAfterHtmlRemove(vditor, removedParent, removedNext ?? null);
+        }
+        return;
+    }
+    if (documentTarget) {
+        restoreDocumentTargetFocus(vditor, documentTarget, focusElement);
         return;
     }
     restoreFocusToHtmlElement(vditor, focusElement);
@@ -569,6 +586,11 @@ export const handleHtmlEditorClick = (
     if (htmlInline && htmlInline.getAttribute("contenteditable") === "false") {
         event.preventDefault();
         event.stopPropagation();
+        const documentTarget = createDocumentTargetForElement(vditor, htmlInline);
+        if (documentTarget && !shouldEditDocumentTarget(documentTarget, event)) {
+            return true;
+        }
+        activeHtmlDocumentTarget = documentTarget;
         showHtmlEditorPopover(vditor, createHtmlInlineTargetWithVditor(vditor, htmlInline));
         return true;
     }
@@ -577,6 +599,11 @@ export const handleHtmlEditorClick = (
     if (htmlBlock) {
         event.preventDefault();
         event.stopPropagation();
+        const documentTarget = createDocumentTargetForElement(vditor, htmlBlock);
+        if (documentTarget && !shouldEditDocumentTarget(documentTarget, event)) {
+            return true;
+        }
+        activeHtmlDocumentTarget = documentTarget;
         showHtmlEditorPopover(vditor, createHtmlBlockTarget(vditor, htmlBlock));
         return true;
     }
@@ -629,12 +656,14 @@ export const handleHtmlEditorAltEnter = (vditor: IVditor, range: Range): boolean
 
     const htmlInline = resolveReadonlyHtmlInlineFromRange(range);
     if (htmlInline) {
+        activeHtmlDocumentTarget = createDocumentTargetForElement(vditor, htmlInline);
         showHtmlEditorPopover(vditor, createHtmlInlineTargetWithVditor(vditor, htmlInline));
         return true;
     }
 
     const htmlBlock = resolveReadonlyHtmlBlockFromRange(range);
     if (htmlBlock) {
+        activeHtmlDocumentTarget = createDocumentTargetForElement(vditor, htmlBlock);
         showHtmlEditorPopover(vditor, createHtmlBlockTarget(vditor, htmlBlock));
         return true;
     }

@@ -388,10 +388,47 @@ type ILinkClickType = "link" | "wikilink" | "wikilink-embed" | "image" | "tag" |
 
 type ILinkClickAction = "click" | "dblclick" | "auxclick";
 
+type IDocumentTargetKind = "link" | "link-ref" | "wikilink" | "wikilink-embed" | "image" | "html-inline" | "html-block";
+type IDocumentTargetGesture = "click" | "modified-click" | "dblclick" | "auxclick" | "alt-enter";
+type IDocumentTargetActivation = "edit" | "host-open" | "none";
+
+interface IDocumentTarget {
+    version: 1;
+    kind: IDocumentTargetKind;
+    identity: string;
+    source: {
+        display: string;
+        destination: string;
+        source: string;
+        displayRange?: { start: number; end: number };
+        destinationRange?: { start: number; end: number };
+        sourceRange?: { start: number; end: number };
+    };
+    activation: Readonly<Record<IDocumentTargetGesture, IDocumentTargetActivation>>;
+    editableFields: readonly {
+        name: "display" | "destination" | "path" | "fragment" | "alt" | "source" | "reference";
+        value: string;
+        sourceRange?: { start: number; end: number };
+    }[];
+    hostOpen: {
+        kind: "external" | "fragment" | "wiki";
+        uri: string;
+    } | null;
+    focusAnchor: {
+        identity: string;
+        position: any;
+        edge: "before" | "after" | "content";
+    } | null;
+}
+
 interface ILinkClickPayload {
     type: ILinkClickType;
     /** 单击 / 双击 / 中键 */
     action: ILinkClickAction;
+    /** Shared ADR 0012 gesture used to select the target action. */
+    gesture?: IDocumentTargetGesture;
+    /** Shared semantic target; legacy fields remain for API compatibility. */
+    target?: IDocumentTarget;
     href: string;
     text: string;
     element: HTMLElement;

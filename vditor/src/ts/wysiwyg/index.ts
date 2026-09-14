@@ -36,6 +36,7 @@ import {
     genAPopover,
     genImagePopover,
     genLinkRefPopover,
+    genWikiPopover,
     getPopoverSourceElement,
     highlightToolbarWYSIWYG,
     isElementVisibleInEditorViewport,
@@ -56,7 +57,11 @@ import { focusWysiwygCodeBlock, showCode } from "./showCode";
 import { getMarkdown } from "../markdown/getMarkdown";
 import { fireContentInput } from "../util/saveToolbarState";
 import { initBlockHandle } from "./blockHandle";
-import { linkClickEvent } from "../util/linkClick";
+import {
+    createDocumentTargetForElement,
+    linkClickEvent,
+    shouldEditDocumentTarget,
+} from "../util/linkClick";
 import { initTableHandle } from "./tableHandle";
 import { expandMarkerWithMathSync } from "../ir/expandMarkerSync";
 import { handleHtmlEditorClick } from "../htmlInline/htmlInlineEditor";
@@ -411,6 +416,12 @@ class WYSIWYG {
             if (event.target.tagName === "IMG" &&
                 !isPlantumlRenderImage(event.target) &&
                 !event.target.parentElement.classList.contains("vditor-wysiwyg__preview")) {
+                event.preventDefault();
+                const imgTarget = createDocumentTargetForElement(vditor, event.target);
+                if (imgTarget && !shouldEditDocumentTarget(imgTarget, event)) {
+                    clickToc(event, vditor);
+                    return;
+                }
                 if (event.target.getAttribute("data-type") === "link-ref") {
                     genLinkRefPopover(vditor, event.target);
                 } else {
@@ -464,13 +475,30 @@ class WYSIWYG {
                 }
             }
 
-            const linkRefElement = hasClosestByAttribute(event.target, "data-type", "link-ref");
-            if (linkRefElement) {
-                genLinkRefPopover(vditor, linkRefElement as HTMLElement);
+            const wikiElement = hasClosestByAttribute(event.target, "data-type", "wikilink")
+                || hasClosestByAttribute(event.target, "data-type", "wikilink-embed")
+                || (event.target.closest?.(".obsidian-wikilink, .obsidian-wikilink-embed") as HTMLElement | null);
+            if (wikiElement) {
+                const wikiTarget = createDocumentTargetForElement(vditor, wikiElement as HTMLElement);
+                if (wikiTarget && shouldEditDocumentTarget(wikiTarget, event)) {
+                    event.preventDefault();
+                    genWikiPopover(vditor, wikiElement as HTMLElement);
+                }
             } else {
-                const aElement = hasClosestByMatchTag(event.target, "A");
-                if (aElement) {
-                    genAPopover(vditor, aElement as HTMLElement);
+                const linkRefElement = hasClosestByAttribute(event.target, "data-type", "link-ref");
+                if (linkRefElement) {
+                    const linkRefTarget = createDocumentTargetForElement(vditor, linkRefElement as HTMLElement);
+                    if (!linkRefTarget || shouldEditDocumentTarget(linkRefTarget, event)) {
+                        genLinkRefPopover(vditor, linkRefElement as HTMLElement);
+                    }
+                } else {
+                    const aElement = hasClosestByMatchTag(event.target, "A");
+                    if (aElement) {
+                        const aTarget = createDocumentTargetForElement(vditor, aElement as HTMLElement);
+                        if (!aTarget || shouldEditDocumentTarget(aTarget, event)) {
+                            genAPopover(vditor, aElement as HTMLElement);
+                        }
+                    }
                 }
             }
 

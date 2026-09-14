@@ -40,22 +40,53 @@ import {updateTableHandle} from "./tableHandle";
 import {resolveAdjacentElementFromRange} from "../util/rangeAdjacentElement";
 import {normalizeLinkDestInput} from "../util/linkDest";
 import {commitAuthoredEdit} from "../util/editTransaction";
+import {
+    createDocumentTargetForElement,
+    restoreDocumentTargetFocus,
+} from "../util/linkClick";
+import type {DocumentTarget} from "../util/documentTarget";
 
-export const hideLinkPopover = (vditor: IVditor) => {
+type LinkPopoverBinding = {
+    element: HTMLElement;
+    target: DocumentTarget;
+    commit: () => void;
+    cancel: () => void;
+};
+
+type LinkPopoverElement = HTMLDivElement & {
+    _sourceElement?: HTMLElement;
+    _documentTargetBinding?: LinkPopoverBinding;
+};
+
+const getLinkPopoverBinding = (vditor: IVditor): LinkPopoverBinding | null =>
+    (getModePopover(vditor) as LinkPopoverElement | null)?._documentTargetBinding || null;
+
+const hideLinkPopoverOnly = (vditor: IVditor) => {
     if (vditor.currentMode === "wysiwyg" || vditor.currentMode === "ir") {
         clearTimeout(vditor[vditor.currentMode].hlToolbarTimeoutId);
     }
-    const popover = getModePopover(vditor);
+    const popover = getModePopover(vditor) as LinkPopoverElement | null;
     if (!popover) {
         return;
     }
     popover.style.position = "";
     popover.style.display = "none";
-    delete (popover as { _sourceElement?: HTMLElement })._sourceElement;
+    delete popover._sourceElement;
+    delete popover._documentTargetBinding;
+};
+
+export const hideLinkPopover = (vditor: IVditor) => {
+    const binding = getLinkPopoverBinding(vditor);
+    if (binding) {
+        // Losing the selection by clicking elsewhere is a normal close: keep
+        // the edits and put one semantic commit around the whole popover.
+        binding.commit();
+    }
+    hideLinkPopoverOnly(vditor);
 };
 
 export const getPopoverSourceElement = (vditor: IVditor): HTMLElement | null => {
-    const popover = getModePopover(vditor) as { _sourceElement?: HTMLElement } | null;
+    const popover = getModePopover(vditor) as LinkPopoverElement | null;
     return popover?._sourceElement ?? null;
 };
 
@@ -74,8 +105,13 @@ export const isElementVisibleInEditorViewport = (editorElement: HTMLElement, ele
 };
 
 /** 退出链接/图片编辑弹窗，光标回到元素后（与 Alt+Enter 一致） */
-export const exitLinkPopoverToElement = (vditor: IVditor, element: HTMLElement) => {
-    hideLinkPopover(vditor);
+export const exitLinkPopoverToElement = (vditor: IVditor, element: HTMLElement, commit = false) => {
+    const binding = getLinkPopoverBinding(vditor);
+    if (binding && binding.element === element) {
+        (commit ? binding.commit : binding.cancel)();
+        return;
+    }
+    hideLinkPopoverOnly(vditor);
     const editorElement = getModeEditorElement(vditor);
     if (!editorElement) {
         return;
@@ -86,6 +122,30 @@ export const exitLinkPopoverToElement = (vditor: IVditor, element: HTMLElement) 
     range.setStartAfter(element.nextSibling as Node);
     range.collapse(true);
     setSelectionFocus(range);
+};
+
+const bindLinkPopover = (
+    vditor: IVditor,
+    element: HTMLElement,
+    target: DocumentTarget,
+    commit: () => void,
+    cancel: () => void,
+) => {
+    const popover = getModePopover(vditor) as LinkPopoverElement | null;
+    if (popover) {
+        popover._documentTargetBinding = { element, target, commit, cancel };
+    }
+};
+
+const closeLinkPopover = (
+    vditor: IVditor,
+    target: DocumentTarget,
+    element: HTMLElement,
+    mutate: () => void,
+) => {
+    mutate();
+    hideLinkPopoverOnly(vditor);
+    restoreDocumentTargetFocus(vditor, target, element);
 };
 
 const focusEditorWithoutScroll = (editor: HTMLElement) => {
@@ -408,7 +468,11 @@ export const genLinkRefPopover = (vditor: IVditor, linkRefElement: HTMLElement) 
     if (!popover) {
         return;
     }
-    (popover as { _sourceElement?: HTMLElement })._sourceElement = linkRefElement;
+    const documentTarget = createDocumentTargetForElement(vditor, linkRefElement);
+    if (!documentTarget) {
+        return;
+    }
+    (popover as LinkPopoverElement)._sourceElement = linkRefElement;
     popover.innerHTML = "";
 
     const getDisplayText = () => {
@@ -417,6 +481,9 @@ export const genLinkRefPopover = (vditor: IVditor, linkRefElement: HTMLElement) 
         }
         return linkRefElement.textContent || "";
     };
+
+    const initialDisplay = getDisplayText();
+    const initialReference = linkRefElement.getAttribute("data-link-label") || "";
 
     const setDisplayText = (value: string) => {
         if (linkRefElement.tagName === "IMG") {
@@ -430,12 +497,10 @@ export const genLinkRefPopover = (vditor: IVditor, linkRefElement: HTMLElement) 
         if (textInput.value.trim() !== "") {
             setDisplayText(textInput.value);
         }
-        afterRenderEvent(vditor);
     };
 
     const updateRef = () => {
         linkRefElement.setAttribute("data-link-label", refInput.value);
-        afterRenderEvent(vditor);
     };
 
     const copyRef = async (): Promise<boolean> => {
@@ -460,7 +525,6 @@ export const genLinkRefPopover = (vditor: IVditor, linkRefElement: HTMLElement) 
     };
 
     const removeLinkRef = () => {
-        const range = getEditorRange(vditor);
         const childNodes = Array.from(linkRefElement.childNodes);
         let focusNode: Node = linkRefElement;
         if (linkRefElement.tagName === "IMG") {
@@ -476,10 +540,9 @@ export const genLinkRefPopover = (vditor: IVditor, linkRefElement: HTMLElement) 
             linkRefElement.parentElement?.insertBefore(focusNode, linkRefElement);
         }
         linkRefElement.remove();
-        range.setStartAfter(focusNode);
-        range.collapse(true);
-        setSelectionFocus(range);
         commitAuthoredEdit(vditor, { intent: "linkHtml" });
+        hideLinkPopoverOnly(vditor);
+        restoreDocumentTargetFocus(vditor, documentTarget, null);
         highlightToolbarWYSIWYG(vditor);
     };
 
@@ -497,7 +560,7 @@ export const genLinkRefPopover = (vditor: IVditor, linkRefElement: HTMLElement) 
         if (removeBlockElement(vditor, event)) {
             return;
         }
-        linkHotkey(vditor, linkRefElement, event, refInput);
+        linkHotkey(vditor, linkRefElement, event, refInput, save, cancel);
     };
 
     const refInput = document.createElement("input");
@@ -511,8 +574,22 @@ export const genLinkRefPopover = (vditor: IVditor, linkRefElement: HTMLElement) 
         if (removeBlockElement(vditor, event)) {
             return;
         }
-        linkHotkey(vditor, linkRefElement, event, textInput);
+        linkHotkey(vditor, linkRefElement, event, textInput, save, cancel);
     };
+
+    function save() { closeLinkPopover(vditor, documentTarget, linkRefElement, () => {
+        if (textInput.value.trim() !== "") {
+            setDisplayText(textInput.value);
+        }
+        linkRefElement.setAttribute("data-link-label", refInput.value);
+        if (textInput.value !== initialDisplay || refInput.value !== initialReference) {
+            commitAuthoredEdit(vditor, { intent: "linkHtml" });
+        }
+    }); }
+    function cancel() { closeLinkPopover(vditor, documentTarget, linkRefElement, () => {
+        setDisplayText(initialDisplay);
+        linkRefElement.setAttribute("data-link-label", initialReference);
+    }); }
 
     const copy = document.createElement("button");
     copy.setAttribute("type", "button");
@@ -534,6 +611,7 @@ export const genLinkRefPopover = (vditor: IVditor, linkRefElement: HTMLElement) 
 
     view.append(textInput, refInput, copy, remove, createLinkPopoverExitHint());
     popover.insertAdjacentElement("beforeend", view);
+    bindLinkPopover(vditor, linkRefElement, documentTarget, save, cancel);
     setPopoverPosition(vditor, linkRefElement, "link-ref");
 };
 
@@ -542,12 +620,14 @@ const linkHotkey = (
     element: HTMLElement,
     event: KeyboardEvent,
     nextInputElement: HTMLInputElement,
+    save: () => void,
+    cancel: () => void,
 ) => {
     if (event.isComposing) {
         return;
     }
     if (event.key === "Escape") {
-        exitLinkPopoverToElement(vditor, element);
+        cancel();
         event.preventDefault();
         event.stopPropagation();
         return;
@@ -564,7 +644,7 @@ const linkHotkey = (
         !event.altKey &&
         event.key === "Enter"
     ) {
-        exitLinkPopoverToElement(vditor, element);
+        save();
         event.preventDefault();
         return;
     }
@@ -574,7 +654,7 @@ const linkHotkey = (
         event.altKey &&
         event.key === "Enter"
     ) {
-        exitLinkPopoverToElement(vditor, element);
+        save();
         event.preventDefault();
     }
 };
@@ -584,24 +664,28 @@ export const genAPopover = (vditor: IVditor, aElement: HTMLElement) => {
     if (!popover) {
         return;
     }
-    (popover as { _sourceElement?: HTMLElement })._sourceElement = aElement;
+    const documentTarget = createDocumentTargetForElement(vditor, aElement);
+    if (!documentTarget) {
+        return;
+    }
+    (popover as LinkPopoverElement)._sourceElement = aElement;
     popover.innerHTML = "";
 
     const updateText = () => {
         if (textInput.value.trim() !== "") {
             aElement.innerHTML = textInput.value;
         }
-        afterRenderEvent(vditor);
     };
 
     const updateHref = () => {
         aElement.setAttribute("href", normalizeLinkDestInput(hrefInput.value));
-        afterRenderEvent(vditor);
     };
 
     aElement.querySelectorAll("[data-marker]").forEach((item: HTMLElement) => {
         item.removeAttribute("data-marker");
     });
+    const initialText = aElement.innerHTML;
+    const initialHref = aElement.getAttribute("href") || "";
 
     const copyLink = async (): Promise<boolean> => {
         const link = aElement.getAttribute("href") || "";
@@ -625,7 +709,6 @@ export const genAPopover = (vditor: IVditor, aElement: HTMLElement) => {
     };
 
     const unlinkA = () => {
-        const range = getEditorRange(vditor);
         const childNodes = Array.from(aElement.childNodes);
         let focusNode: Node = aElement;
         if (childNodes.length > 0) {
@@ -638,10 +721,9 @@ export const genAPopover = (vditor: IVditor, aElement: HTMLElement) => {
             aElement.parentElement.insertBefore(focusNode, aElement);
         }
         aElement.remove();
-        range.setStartAfter(focusNode);
-        range.collapse(true);
-        setSelectionFocus(range);
         commitAuthoredEdit(vditor, { intent: "linkHtml" });
+        hideLinkPopoverOnly(vditor);
+        restoreDocumentTargetFocus(vditor, documentTarget, null);
         highlightToolbarWYSIWYG(vditor);
     };
 
@@ -659,7 +741,7 @@ export const genAPopover = (vditor: IVditor, aElement: HTMLElement) => {
         if (removeBlockElement(vditor, event)) {
             return;
         }
-        linkHotkey(vditor, aElement, event, hrefInput);
+        linkHotkey(vditor, aElement, event, hrefInput, save, cancel);
     };
 
     const hrefInput = document.createElement("input");
@@ -673,8 +755,22 @@ export const genAPopover = (vditor: IVditor, aElement: HTMLElement) => {
         if (removeBlockElement(vditor, event)) {
             return;
         }
-        linkHotkey(vditor, aElement, event, textInput);
+        linkHotkey(vditor, aElement, event, textInput, save, cancel);
     };
+
+    function save() { closeLinkPopover(vditor, documentTarget, aElement, () => {
+        if (textInput.value.trim() !== "") {
+            updateText();
+        }
+        updateHref();
+        if (aElement.innerHTML !== initialText || aElement.getAttribute("href") !== initialHref) {
+            commitAuthoredEdit(vditor, { intent: "linkHtml" });
+        }
+    }); }
+    function cancel() { closeLinkPopover(vditor, documentTarget, aElement, () => {
+        aElement.innerHTML = initialText;
+        aElement.setAttribute("href", initialHref);
+    }); }
 
     const copy = document.createElement("button");
     copy.setAttribute("type", "button");
@@ -698,6 +794,7 @@ export const genAPopover = (vditor: IVditor, aElement: HTMLElement) => {
 
     view.append(textInput, hrefInput, copy, remove, hint);
     popover.insertAdjacentElement("beforeend", view);
+    bindLinkPopover(vditor, aElement, documentTarget, save, cancel);
     setPopoverPosition(vditor, aElement, "link");
 };
 
@@ -706,17 +803,22 @@ export const genImagePopoverForElement = (vditor: IVditor, imgElement: HTMLImage
     if (!popover) {
         return;
     }
-    (popover as { _sourceElement?: HTMLElement })._sourceElement = imgElement;
+    const documentTarget = createDocumentTargetForElement(vditor, imgElement);
+    if (!documentTarget) {
+        return;
+    }
+    (popover as LinkPopoverElement)._sourceElement = imgElement;
     popover.innerHTML = "";
+
+    const initialAlt = imgElement.getAttribute("alt") || "";
+    const initialSrc = imgElement.getAttribute("src") || "";
 
     const updateAlt = () => {
         imgElement.setAttribute("alt", altInput.value);
-        afterRenderEvent(vditor);
     };
 
     const updateSrc = () => {
         imgElement.setAttribute("src", normalizeLinkDestInput(srcInput.value));
-        afterRenderEvent(vditor);
     };
 
     const copySrc = async (): Promise<boolean> => {
@@ -741,12 +843,10 @@ export const genImagePopoverForElement = (vditor: IVditor, imgElement: HTMLImage
     };
 
     const removeImage = () => {
-        const range = getEditorRange(vditor);
-        range.setStartBefore(imgElement);
-        range.collapse(true);
         imgElement.remove();
-        setSelectionFocus(range);
         commitAuthoredEdit(vditor, { intent: "linkHtml" });
+        hideLinkPopoverOnly(vditor);
+        restoreDocumentTargetFocus(vditor, documentTarget, null);
         highlightToolbarWYSIWYG(vditor);
     };
 
@@ -764,7 +864,7 @@ export const genImagePopoverForElement = (vditor: IVditor, imgElement: HTMLImage
         if (removeBlockElement(vditor, elementEvent)) {
             return;
         }
-        linkHotkey(vditor, imgElement, elementEvent, srcInput);
+        linkHotkey(vditor, imgElement, elementEvent, srcInput, save, cancel);
     };
 
     const srcInput = document.createElement("input");
@@ -778,8 +878,20 @@ export const genImagePopoverForElement = (vditor: IVditor, imgElement: HTMLImage
         if (removeBlockElement(vditor, elementEvent)) {
             return;
         }
-        linkHotkey(vditor, imgElement, elementEvent, altInput);
+        linkHotkey(vditor, imgElement, elementEvent, altInput, save, cancel);
     };
+
+    function save() { closeLinkPopover(vditor, documentTarget, imgElement, () => {
+        updateAlt();
+        updateSrc();
+        if (imgElement.getAttribute("alt") !== initialAlt || imgElement.getAttribute("src") !== initialSrc) {
+            commitAuthoredEdit(vditor, { intent: "linkHtml" });
+        }
+    }); }
+    function cancel() { closeLinkPopover(vditor, documentTarget, imgElement, () => {
+        imgElement.setAttribute("alt", initialAlt);
+        imgElement.setAttribute("src", initialSrc);
+    }); }
 
     const copy = document.createElement("button");
     copy.setAttribute("type", "button");
@@ -801,12 +913,135 @@ export const genImagePopoverForElement = (vditor: IVditor, imgElement: HTMLImage
 
     view.append(altInput, srcInput, copy, remove, createLinkPopoverExitHint());
     popover.insertAdjacentElement("beforeend", view);
+    bindLinkPopover(vditor, imgElement, documentTarget, save, cancel);
     setPopoverPosition(vditor, imgElement, "image");
 };
 
 export const genImagePopover = (event: Event, vditor: IVditor) => {
     genImagePopoverForElement(vditor, event.target as HTMLImageElement);
 };
+
+
+export const genWikiPopover = (vditor: IVditor, wikiElement: HTMLElement) => {
+    const popover = getModePopover(vditor);
+    if (!popover) {
+        return;
+    }
+    const documentTarget = createDocumentTargetForElement(vditor, wikiElement);
+    if (!documentTarget) {
+        return;
+    }
+    (popover as LinkPopoverElement)._sourceElement = wikiElement;
+    popover.innerHTML = "";
+
+    const initialDestination = wikiElement.getAttribute("data-href") || wikiElement.dataset.href || "";
+    const hash = initialDestination.indexOf("#");
+    const initialPath = hash < 0 ? initialDestination : initialDestination.slice(0, hash);
+    const initialFragment = hash < 0 ? "" : initialDestination.slice(hash + 1);
+    const displayEl = wikiElement.querySelector<HTMLElement>(".vditor-wikilink__display");
+    const sourceEl = wikiElement.querySelector<HTMLElement>(".vditor-wikilink__source")
+        || Array.from(wikiElement.children).find((child) =>
+            child instanceof HTMLElement && child.getAttribute("data-newline") === "1") as HTMLElement | undefined;
+    const initialDisplay = displayEl?.textContent?.trim()
+        || (wikiElement.classList.contains("obsidian-wikilink") ? wikiElement.textContent?.trim() : "")
+        || initialPath
+        || initialDestination;
+
+    const buildDestination = () => {
+        const path = pathInput.value.trim();
+        const fragment = fragmentInput.value.trim();
+        if (!path) {
+            return fragment ? `#${fragment}` : "";
+        }
+        return fragment ? `${path}#${fragment}` : path;
+    };
+
+    const buildSource = (destination: string, display: string) => {
+        if (!display || display === destination || display === destination.split("#")[0]) {
+            return `[[${destination}]]`;
+        }
+        return `[[${destination}|${display}]]`;
+    };
+
+    const applyFields = () => {
+        const destination = buildDestination();
+        const display = textInput.value.trim() || destination.split("#")[0] || destination;
+        wikiElement.setAttribute("data-href", destination);
+        if (wikiElement.dataset) {
+            wikiElement.dataset.href = destination;
+        }
+        if (displayEl) {
+            displayEl.textContent = display;
+        }
+        if (sourceEl) {
+            sourceEl.textContent = buildSource(destination, display);
+        }
+    };
+
+    const view = document.createElement("span");
+    view.className = "vditor-link-popover";
+
+    const textInput = document.createElement("input");
+    textInput.className = "vditor-link-popover__text vditor-input";
+    textInput.setAttribute("placeholder", window.VditorI18n.textIsNotEmpty || "Display");
+    textInput.value = initialDisplay;
+
+    const pathInput = document.createElement("input");
+    pathInput.className = "vditor-link-popover__href vditor-input";
+    pathInput.setAttribute("placeholder", "Wiki path");
+    pathInput.value = initialPath;
+
+    const fragmentInput = document.createElement("input");
+    fragmentInput.className = "vditor-link-popover__href vditor-input";
+    fragmentInput.setAttribute("placeholder", "Fragment");
+    fragmentInput.value = initialFragment;
+
+    function save() {
+        closeLinkPopover(vditor, documentTarget, wikiElement, () => {
+            applyFields();
+            const nextDestination = wikiElement.getAttribute("data-href") || "";
+            const nextDisplay = displayEl?.textContent?.trim() || "";
+            if (nextDestination !== initialDestination || nextDisplay !== initialDisplay) {
+                commitAuthoredEdit(vditor, { intent: "linkHtml" });
+            }
+        });
+    }
+    function cancel() {
+        closeLinkPopover(vditor, documentTarget, wikiElement, () => {
+            wikiElement.setAttribute("data-href", initialDestination);
+            if (wikiElement.dataset) {
+                wikiElement.dataset.href = initialDestination;
+            }
+            if (displayEl) {
+                displayEl.textContent = initialDisplay;
+            }
+            if (sourceEl) {
+                sourceEl.textContent = buildSource(initialDestination, initialDisplay);
+            }
+        });
+    }
+
+    for (const input of [textInput, pathInput, fragmentInput]) {
+        input.onkeydown = (event) => {
+            if (removeBlockElement(vditor, event)) {
+                return;
+            }
+            if (event.key === "Enter") {
+                event.preventDefault();
+                save();
+            } else if (event.key === "Escape") {
+                event.preventDefault();
+                cancel();
+            }
+        };
+    }
+
+    view.append(textInput, pathInput, fragmentInput, createLinkPopoverExitHint());
+    popover.insertAdjacentElement("beforeend", view);
+    bindLinkPopover(vditor, wikiElement, documentTarget, save, cancel);
+    setPopoverPosition(vditor, wikiElement, "link");
+};
+
 
 const linkRefFromSibling = (node: Node | null): HTMLElement | null =>
     node?.nodeType === 1 && (node as HTMLElement).getAttribute("data-type") === "link-ref"
@@ -880,6 +1115,14 @@ const isLinkPopoverOpen = (vditor: IVditor) => {
 export const handleLinkPopoverAltEnter = (vditor: IVditor, range: Range): boolean => {
     if (isLinkPopoverOpen(vditor)) {
         return false;
+    }
+
+    const wiki = hasClosestByAttribute(range.startContainer as HTMLElement, "data-type", "wikilink")
+        || hasClosestByAttribute(range.startContainer as HTMLElement, "data-type", "wikilink-embed");
+    if (wiki) {
+        genWikiPopover(vditor, wiki as HTMLElement);
+        focusLinkPopoverInput(vditor);
+        return true;
     }
 
     const linkRef = resolveAdjacentLinkRef(range);

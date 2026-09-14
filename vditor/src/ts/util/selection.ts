@@ -598,6 +598,11 @@ export const getSelectPosition = (selectElement: HTMLElement, editorElement: HTM
     return position;
 };
 
+const isDocumentPositionBlock = (element: Element) =>
+    element.getAttribute("data-type") === "code-block"
+    || element.getAttribute("data-type") === "math-block"
+    || element.getAttribute("data-type") === "html-block";
+
 const isCodeDocumentBlock = (element: Element) =>
     element.getAttribute("data-type") === "code-block" || element.getAttribute("data-type") === "math-block";
 
@@ -620,7 +625,7 @@ const getDocumentPositionBlock = (node: Node, editor: HTMLElement): HTMLElement 
     let embedded = element?.closest?.("[data-type='code-block'], [data-type='math-block']") as HTMLElement | null;
     let embeddedParent = embedded?.parentElement;
     while (embeddedParent && embeddedParent !== editor) {
-        if (isCodeDocumentBlock(embeddedParent)) {
+        if (isDocumentPositionBlock(embeddedParent)) {
             embedded = embeddedParent;
         }
         embeddedParent = embeddedParent.parentElement;
@@ -633,7 +638,7 @@ const getDocumentPositionBlock = (node: Node, editor: HTMLElement): HTMLElement 
         return task;
     }
     while (element && element !== editor) {
-        if (isCodeDocumentBlock(element) || element.classList.contains("vditor-task")) {
+        if (isDocumentPositionBlock(element) || element.classList.contains("vditor-task")) {
             return element;
         }
         if (element.getAttribute("data-block") === "0") {
@@ -650,7 +655,7 @@ const getDocumentPositionBlock = (node: Node, editor: HTMLElement): HTMLElement 
 const collectDocumentPositionBlocks = (editor: HTMLElement) => {
     const blocks: HTMLElement[] = [];
     const candidates = editor.querySelectorAll<HTMLElement>(
-        "[data-type='code-block'], [data-type='math-block'], li.vditor-task, [data-block='0'], p, h1, h2, h3, h4, h5, h6, blockquote, ul, ol",
+        "[data-type='code-block'], [data-type='math-block'], [data-type='html-block'], li.vditor-task, [data-block='0'], p, h1, h2, h3, h4, h5, h6, blockquote, ul, ol",
     );
     candidates.forEach((candidate) => {
         if (getDocumentPositionBlock(candidate, editor) !== candidate || blocks.includes(candidate)) {
@@ -735,12 +740,13 @@ export const getDocumentPositionFromRange = (
     vditor: IVditor,
     editor: HTMLElement,
     inputRange?: Range,
+    options: { preferRangeEndpoints?: boolean } = {},
 ): DocumentPosition | null => {
     const range = inputRange || getSelectionRangeInEditor(editor);
     if (!range) {
         return null;
     }
-    const anchorSelection = window.getSelection();
+    const anchorSelection = options.preferRangeEndpoints ? null : window.getSelection();
     const anchorNode = anchorSelection?.anchorNode && editor.contains(anchorSelection.anchorNode)
         ? anchorSelection.anchorNode
         : range.startContainer;

@@ -39,20 +39,34 @@ handler.on("open", async (md) => {
       editor?.markSaved();
     }),
     onLinkClick(payload, event) {
-      const isCompose = event.metaKey || event.ctrlKey;
-      if (payload.action !== "dblclick" && !(payload.action === "click" && isCompose)) {
+      // ADR 0012: host-open is decided by the shared document-target gesture table.
+      // Prefer target.hostOpen when present so wiki/ordinary links share one path.
+      const gesture = payload.gesture
+        || ((event.metaKey || event.ctrlKey) ? "modified-click"
+          : payload.action === "dblclick" ? "dblclick"
+          : payload.action === "auxclick" ? "auxclick"
+          : "click");
+      const activation = payload.target?.activation?.[gesture];
+      if (activation && activation !== "host-open") {
         return;
+      }
+      if (!activation) {
+        const isCompose = event.metaKey || event.ctrlKey;
+        if (payload.action !== "dblclick" && !(payload.action === "click" && isCompose)) {
+          return;
+        }
       }
       if (payload.type === "footnote-ref") {
         editor.scrollToBlock(`footnote:${payload.href}`);
         return;
       }
-      if (payload.href?.startsWith("#")) {
-        editor.scrollToBlock(payload.href);
+      const hostOpen = payload.target?.hostOpen;
+      if (hostOpen?.kind === "fragment" || payload.href?.startsWith("#")) {
+        editor.scrollToBlock(hostOpen?.uri || payload.href);
         return;
       }
-      let uri = payload.href;
-      if (payload.type === "wikilink" || payload.type === "wikilink-embed") {
+      let uri = hostOpen?.uri || payload.href;
+      if (!hostOpen && (payload.type === "wikilink" || payload.type === "wikilink-embed")) {
         const hashIndex = uri.indexOf("#");
         const page = hashIndex < 0 ? uri : uri.slice(0, hashIndex);
         const fragment = hashIndex < 0 ? "" : uri.slice(hashIndex + 1);
