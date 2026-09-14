@@ -5,6 +5,20 @@ Acceptance surface: `office-view-markdown.markdownViewer` only. Open
 
 ## Sequence
 
+## Continuous GUI path (Light must-fix)
+
+On `office-view-markdown.markdownViewer`, keep this as one uninterrupted GUI
+sequence: plain-click an ordinary link, edit its text or destination, activate
+Save with the existing popover action (Enter/Alt+Enter), and capture the next
+frame. The popover is gone, the authored Markdown has one `linkHtml` undo/dirty
+commit, and focus returns once to the link target through its ADR 0010 anchor —
+not paragraph start, block top, or a surviving DOM node. Repeat the same
+continuous plain-click → edit → Save → one refocus checklist for a wiki link,
+image, and already-wired HTML island; capture a Light screenshot for the
+ordinary-link path at minimum.
+
+## Sequence
+
 1. **Unified click grammar** — Plain-click an ordinary link, a wiki link, an
    image, and an HTML island. Each opens its edit affordance (popover). None
    require a different gesture (e.g. wiki-only double-click) to edit.

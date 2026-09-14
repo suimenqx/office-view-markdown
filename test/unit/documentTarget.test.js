@@ -121,10 +121,31 @@ function main() {
   assert.match(toolbar, /commitAuthoredEdit\(vditor, \{ intent: "linkHtml" \}\)/);
   assert.match(toolbar, /genWikiPopover/);
 
+  // Continuous GUI save/cancel path: mutate once, hide once, restore once.
+  const closePopover = toolbar.slice(
+    toolbar.indexOf('const closeLinkPopover'),
+    toolbar.indexOf('const focusEditorWithoutScroll'),
+  );
+  assert.match(closePopover, /mutate\(\);[\s\S]*hideLinkPopoverOnly\(vditor\);[\s\S]*restoreDocumentTargetFocus\(vditor, target, element\)/);
+  for (const [start, end] of [
+    ['export const genLinkRefPopover', 'const linkHotkey'],
+    ['export const genAPopover', 'export const genImagePopoverForElement'],
+    ['export const genImagePopoverForElement', 'export const genImagePopover ='],
+    ['export const genWikiPopover', 'const linkRefFromSibling'],
+  ]) {
+    const adapter = toolbar.slice(toolbar.indexOf(start), toolbar.indexOf(end));
+    assert.match(adapter, /function save[\s\S]*closeLinkPopover/);
+    assert.match(adapter, /commitAuthoredEdit\(vditor, \{ intent: "linkHtml" \}\)/);
+  }
+
   const html = source('vditor/src/ts/htmlInline/htmlInlineEditor.ts');
   assert.match(html, /restoreDocumentTargetFocus/);
   assert.match(html, /shouldEditDocumentTarget/);
   assert.match(html, /commitAuthoredEdit\(vditor, \{ intent: "linkHtml" \}\)/);
+  const htmlSave = html.slice(html.indexOf('const save = () =>'), html.indexOf('const cancel = () =>'));
+  assert.match(htmlSave, /notifyAfterHtmlEditorChange\(vditor\)/);
+  assert.match(html, /closeHtmlEditorPopover\(vditor, focusElement\)/);
+  assert.match(html, /restoreDocumentTargetFocus\(vditor, documentTarget, focusElement\)/);
 
   const wysiwyg = source('vditor/src/ts/wysiwyg/index.ts');
   assert.match(wysiwyg, /shouldEditDocumentTarget/);

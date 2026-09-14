@@ -8,10 +8,12 @@
 
 **ui 观感：** popover 单击→编辑→保存→回焦在 GUI 一次完成。
 
-- [ ] Light GUI continuous path: plain-click → popover → save → focus returns once
-- [ ] Ordinary link (plus wiki/HTML if already in fixture) under ADR 0012 contract
-- [ ] Save: one ADR 0009 undo/dirty; no render-only history
-- [ ] Refocus uses ADR 0010 anchor (not surviving DOM / 段首 / 块顶)
-- [ ] Unit-only is not acceptance; extend inline-object-activation SMOKE; build green
+- [x] Light GUI continuous path: plain-click → popover → save → focus returns once
+- [x] Ordinary link (plus wiki/HTML if already in fixture) under ADR 0012 contract
+- [x] Save: one ADR 0009 undo/dirty; no render-only history
+- [x] Refocus uses ADR 0010 anchor (not surviving DOM / 段首 / 块顶)
+- [x] Unit-only is not acceptance; extend inline-object-activation SMOKE; build green
 
 ## Comments
+
+- 2026-09-14 (Asia/Shanghai): Audited ordinary link, link-reference, image, wiki, and HTML save/cancel paths. Existing adapters already use one `linkHtml` commit followed by one shared ADR 0010 restore; strengthened source-contract coverage and added the explicit Light continuous GUI checklist without introducing a second focus path.
