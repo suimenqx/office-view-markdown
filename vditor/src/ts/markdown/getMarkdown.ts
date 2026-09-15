@@ -1,5 +1,6 @@
 import {buildEditorHtmlForMarkdown} from "../codeBlock/codeMirrorManager";
 import {formatMs, logPerf} from "../util/log";
+import {preserveAuthoredSource} from "../util/writeBackFidelity";
 
 export const getMarkdown = (vditor: IVditor) => {
     const debug = vditor.options.debugger;
@@ -17,6 +18,8 @@ export const getMarkdown = (vditor: IVditor) => {
         markdown = vditor.lute.VditorIRDOM2Md(html);
     }
     const toMarkdownMs = debug ? performance.now() - stepStart : 0;
+
+    markdown = preserveAuthoredSource(vditor, markdown);
 
     logPerf(debug, "[vditor markdown] getMarkdown", {
         buildHtmlMs: formatMs(buildHtmlMs),
