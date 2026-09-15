@@ -12,7 +12,7 @@ import {scheduleRenderToc} from "../util/toc";
 import {highlightToolbarIR} from "./highlightToolbarIR";
 import {input} from "./input";
 import {refreshGitHubAlertPresentation} from "../markdown/alertRefresh";
-import {hasAuthoredIntent, noteAuthoredIntent} from "../util/writeBackFidelity";
+import {clearAuthoredIntent, hasAuthoredIntent, noteAuthoredIntent} from "../util/writeBackFidelity";
 
 export const processHint = (vditor: IVditor) => {
     vditor.hint.render(vditor);
@@ -29,6 +29,8 @@ export const recordHistory = (vditor: IVditor, options = {
     const text = getMarkdown(vditor);
     if (options.enableInput) {
         fireContentInput(vditor, text, { authoredIntent: hasAuthoredIntent(vditor) });
+    } else {
+        clearAuthoredIntent(vditor);
     }
 
     if (vditor.options.counter.enable) {
@@ -67,6 +69,8 @@ export const processAfterRender = (vditor: IVditor, options: {
 }) => {
     if (options.enableInput !== false) {
         noteAuthoredIntent(vditor);
+    } else {
+        clearAuthoredIntent(vditor);
     }
     const editorElement = vditor[vditor.currentMode].element;
     refreshGitHubAlertPresentation(editorElement, options.alertScope);
