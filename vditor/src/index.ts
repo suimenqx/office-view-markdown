@@ -67,6 +67,7 @@ import {
     resolveFrontMatterPresentation,
 } from "./ts/ui/frontMatterPresentation";
 import { unbindTypewriterMode } from "./ts/ui/typewriterMode";
+import { noteAuthoredSource } from "./ts/util/writeBackFidelity";
 
 class Vditor {
     public static adapterRender = adapterRender;
@@ -396,6 +397,7 @@ class Vditor {
 
     /** 设置编辑器内容 */
     public setValue(markdown: string, clearStack = false) {
+        noteAuthoredSource(this.vditor, markdown);
         if (this.vditor.currentMode === "wysiwyg") {
             renderDomByMd(this.vditor, markdown, {
                 enableAddUndoStack: true,

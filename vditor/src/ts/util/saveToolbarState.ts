@@ -1,4 +1,10 @@
 import {Constants} from "../constants";
+import {
+    clearAuthoredIntent,
+    getAuthoredSource,
+    hasAuthoredIntent,
+    shouldSkipNoIntentWrite,
+} from "./writeBackFidelity";
 
 const SAVE_TOOLBAR_NAME = "save";
 
@@ -43,10 +49,21 @@ export const updateSaveToolbarState = (vditor: IVditor) => {
     setSaveButtonDisabled(vditor, !isDocumentDirty(vditor));
 };
 
-export const fireContentInput = (vditor: IVditor, text: string) => {
+export const fireContentInput = (
+    vditor: IVditor,
+    text: string,
+    options: { authoredIntent?: boolean } = {},
+): boolean => {
+    const authoredIntent = options.authoredIntent ?? hasAuthoredIntent(vditor);
+    if (shouldSkipNoIntentWrite(text, getAuthoredSource(vditor), authoredIntent)) {
+        clearAuthoredIntent(vditor);
+        return false;
+    }
     if (typeof vditor.options.input === "function") {
         vditor.options.input(text);
     }
     dirtyStateMap.set(vditor, true);
     updateSaveToolbarState(vditor);
+    clearAuthoredIntent(vditor);
+    return true;
 };

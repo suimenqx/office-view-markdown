@@ -23,6 +23,10 @@ import {
     EDITOR_FONT_SIZE_MIN,
     resolveEditorFontSize,
 } from '@/common/editorFontSize';
+import {
+    shouldSkipNoIntentWrite,
+    sourceFingerprint,
+} from '../../vditor/src/ts/util/writeBackFidelity';
 
 export interface MarkdownEditorProviderOptions {
     isWeb?: boolean;
@@ -152,6 +156,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         const webview = handler.panel.webview;
 
         let content = document.getText();
+        let authoredSource = content;
         const contextUri = extensionResource(this.context, 'resource', 'markdown');
         const rootPath = webview.asWebviewUri(contextUri).toString();
 
@@ -179,10 +184,16 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
             }
             const nextContent = pendingDocumentSync;
             pendingDocumentSync = undefined;
-            content = nextContent;
-            await this.updateTextDocument(document, nextContent);
+            const applied = await this.updateTextDocument(document, nextContent, authoredSource);
+            if (applied) {
+                content = nextContent;
+                authoredSource = nextContent;
+            }
         };
-        const scheduleDocumentSync = (newContent: string) => {
+        const scheduleDocumentSync = (newContent: string, authoredIntent = true) => {
+            if (shouldSkipNoIntentWrite(newContent, authoredSource, authoredIntent)) {
+                return;
+            }
             pendingDocumentSync = newContent;
             content = newContent;
             this.updateCount(content);
@@ -216,7 +227,13 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         }).on("externalUpdate", e => {
             if (lastManualSaveTime && Date.now() - lastManualSaveTime < 800) return;
             const updatedText = e.document.getText()?.replace(/\r/g, '');
-            if (content == updatedText) return;
+            if (sourceFingerprint(content) == sourceFingerprint(updatedText)) return;
+            pendingDocumentSync = undefined;
+            if (documentSyncTimer) {
+                clearTimeout(documentSyncTimer);
+                documentSyncTimer = undefined;
+            }
+            authoredSource = updatedText;
             content = updatedText;
             this.updateCount(content)
             handler.emit("update", updatedText)
@@ -380,9 +397,10 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         this.countStatus.text = i18n('ext.markdown.statusBar', String(content.split(/\r\n|\r|\n/).length), String(content.length))
     }
 
-    private updateTextDocument(document: vscode.TextDocument, content: string) {
+    private updateTextDocument(document: vscode.TextDocument, content: string, authoredSource?: string) {
         const normalized = content.replace(/\r/g, '');
-        if (document.getText().replace(/\r/g, '') === normalized) {
+        if (shouldSkipNoIntentWrite(normalized, authoredSource ?? document.getText(), true)
+            || document.getText().replace(/\r/g, '') === normalized) {
             return Promise.resolve(true);
         }
         const edit = new vscode.WorkspaceEdit();

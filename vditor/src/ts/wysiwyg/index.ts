@@ -56,6 +56,7 @@ import {
 import { focusWysiwygCodeBlock, showCode } from "./showCode";
 import { getMarkdown } from "../markdown/getMarkdown";
 import { fireContentInput } from "../util/saveToolbarState";
+import { noteAuthoredIntent } from "../util/writeBackFidelity";
 import { initBlockHandle } from "./blockHandle";
 import {
     createDocumentTargetForElement,
@@ -352,6 +353,7 @@ class WYSIWYG {
             if ((startSpace && blockElement.getAttribute("data-type") !== "code-block")
                 || endSpace || isHeadingMD(blockElement.innerHTML) ||
                 (isHrMD(blockElement.innerHTML) && blockElement.previousElementSibling)) {
+                noteAuthoredIntent(vditor);
                 fireContentInput(vditor, getMarkdown(vditor));
                 if (shouldFlushHistory) {
                     flushBufferedHistory(vditor);

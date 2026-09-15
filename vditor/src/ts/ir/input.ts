@@ -22,6 +22,7 @@ import {scheduleRenderToc} from "../util/toc";
 import {processAfterRender} from "./process";
 import {getMarkdown} from "../markdown/getMarkdown";
 import {fireContentInput} from "../util/saveToolbarState";
+import {noteAuthoredIntent} from "../util/writeBackFidelity";
 
 export const input = (vditor: IVditor, range: Range, ignoreSpace = false, event?: InputEvent) => {
     // ADR 0010: keep the logical IR position independent of marker remounts.
@@ -64,6 +65,7 @@ export const input = (vditor: IVditor, range: Range, ignoreSpace = false, event?
         }
 
         if (startSpace) {
+            noteAuthoredIntent(vditor);
             fireContentInput(vditor, getMarkdown(vditor));
             return;
         }
@@ -77,6 +79,7 @@ export const input = (vditor: IVditor, range: Range, ignoreSpace = false, event?
                     // FireFox https://github.com/Vanessa219/vditor/issues/239
                     previousNode.classList.remove("vditor-ir__node--expand");
                 }
+                noteAuthoredIntent(vditor);
                 fireContentInput(vditor, getMarkdown(vditor));
                 return;
             }

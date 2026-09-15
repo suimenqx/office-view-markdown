@@ -17,6 +17,7 @@ import {ensureEditorBoundaryParagraphs, renderDomByMd} from "../wysiwyg/renderDo
 import {renderCodeBlocks} from "../codeBlock/codeMirrorManager";
 import {MenuItem} from "./MenuItem";
 import {refreshSettingsToolbarPanel} from "../ui/settingsPanel";
+import {noteAuthoredSource} from "../util/writeBackFidelity";
 import {applyAfterLuteHtmlPresentation} from "../markdown/afterLuteHtml";
 import {
     disableToolbar,
@@ -56,6 +57,7 @@ export const setEditMode = (
         markdownText = getMarkdown(vditor);
     } else {
         markdownText = event;
+        noteAuthoredSource(vditor, markdownText);
     }
     if (vditor.currentMode === type && typeof event !== "string") {
         return;

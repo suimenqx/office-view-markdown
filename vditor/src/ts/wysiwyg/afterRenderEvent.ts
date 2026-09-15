@@ -8,6 +8,7 @@ import { matchHotkeyNew } from "../util/hotKey";
 import { formatMs, logPerf } from "../util/log";
 import { refreshGitHubAlertPresentation } from "../markdown/alertRefresh";
 import { commitAuthoredEdit } from "../util/editTransaction";
+import { hasAuthoredIntent, noteAuthoredIntent } from "../util/writeBackFidelity";
 
 
 export function handlerHistoryEvent(event: KeyboardEvent, vditor: IVditor,): boolean {
@@ -29,6 +30,9 @@ export const afterRenderEvent = (vditor: IVditor, options: {
     enableHint: false,
     enableInput: true,
 }) => {
+    if (options.enableInput !== false) {
+        noteAuthoredIntent(vditor);
+    }
     const editorElement = vditor[vditor.currentMode].element;
     refreshGitHubAlertPresentation(editorElement, options.alertScope);
     if (options.enableHint) {
@@ -69,7 +73,7 @@ export function recordHistory(vditor: IVditor, options = { enableAddUndoStack: t
 
     stepStart = debug ? performance.now() : 0;
     if (options.enableInput) {
-        fireContentInput(vditor, text);
+        fireContentInput(vditor, text, { authoredIntent: hasAuthoredIntent(vditor) });
     }
     const inputCallbackMs = debug ? performance.now() - stepStart : 0;
 

@@ -10,6 +10,7 @@ import { afterRenderEvent, recordHistory as recordWysiwygHistory } from "../wysi
 import { clearHistoryInputBuffer } from "./historyInputBufferState";
 import { clearPendingHistoryTimeout } from "./instantHistory";
 import { shouldSkipCommit } from "./editTransactionDedupe";
+import { clearAuthoredIntent, noteAuthoredIntent, noteAuthoredSource } from "./writeBackFidelity";
 import {
     beginPresentationOnly,
     endPresentationOnly,
@@ -83,9 +84,14 @@ export const commitAuthoredEdit = (vditor: IVditor, options: CommitOptions = {})
     const enableInput = options.enableInput !== false;
     const enableHint = options.enableHint === true;
 
+    if (enableInput) {
+        noteAuthoredIntent(vditor);
+    }
+
     clearPendingHistory(vditor);
 
     if (enableAddUndoStack && wouldBeNoopCommit(vditor)) {
+        clearAuthoredIntent(vditor);
         return false;
     }
 
@@ -101,8 +107,12 @@ export const commitAuthoredEdit = (vditor: IVditor, options: CommitOptions = {})
         recordIrHistory(vditor, recordOptions);
     }
 
+    const committedSource = fingerprintDocument(vditor);
+    if (enableInput) {
+        noteAuthoredSource(vditor, committedSource);
+    }
     if (enableAddUndoStack) {
-        noteCommittedFingerprint(vditor, fingerprintDocument(vditor));
+        noteCommittedFingerprint(vditor, committedSource);
     }
     return true;
 };
