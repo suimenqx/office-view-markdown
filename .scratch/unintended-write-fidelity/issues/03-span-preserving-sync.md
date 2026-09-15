@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-**ui 观感：** 只 diff 用户改动；未触达表/段不进 git。
+**ui 观感：** 局部编辑局部脏；改一格 ≠ 满屏表 diff。
 
 - [ ] Edit one cell → other untouched tables keep original bytes in host/git diff
 - [ ] Untouched non-table spans likewise stable across intentional local edit

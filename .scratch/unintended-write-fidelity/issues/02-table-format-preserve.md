@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-**ui 观感：** 无意图时表格排版被改写即失败。
+**ui 观感：** 未动表不进 diff；无意图写回不「变漂亮」。
 
 - [ ] Untouched compact tables (`|a|b|`) survive Md↔DOM↔Md without padding/normalize churn
 - [ ] Alignment rows / trailing newlines for untouched tables stay authored-stable

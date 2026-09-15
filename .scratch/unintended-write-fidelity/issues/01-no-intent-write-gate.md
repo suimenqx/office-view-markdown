@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-**ui 观感：** 无编辑时不 dirty 闪烁 / 文件不变脏。
+**ui 观感：** 无意图不闪 dirty；写回跳过/字节等价时 dirty 保持灭。
 
 - [ ] Passive afterRender / open-without-edit does not dirty host document or flash dirty
 - [ ] Write skipped (or bytes unchanged) when no ADR 0009 intent; stronger than `\r`-only equality

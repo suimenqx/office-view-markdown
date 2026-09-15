@@ -42,14 +42,13 @@ First acceptance surface: custom editor only — `office-view-markdown.markdownV
 
 ## Acceptance Criteria
 
-### ui 观感约束（与 ADR 0015 对齐，Studio provisional）
+### ui 观感约束（与 ADR 0015 一一对应，Studio 锁定）
 
-Light must-fix（阻塞）：
+1. **无意图不闪 dirty**：用户未编辑时 tab 脏标不得闪一下（含 afterRender / 序列化 / 主题刷新路径）。
+2. **局部编辑局部脏**：只改一处时，dirty/git 观感应对应该处；勿「整篇表重排」式满屏 diff 感。
+3. **无意图写回 dirty 保持灭**：无意图写回被跳过或字节等价时，dirty 保持灭，不出现假脏再清。
 
-1. **无编辑不 dirty**：冷打开或仅 `afterRender` / 被动渲染时，不出现 dirty 闪烁，磁盘/宿主文档不因无意图写回变脏。
-2. **无意图不改表**：未编辑的表格不得被 Lute 规范化成 git 可见的排版差异（如 `|a|b|` → `| a | b |`、对齐行拉伸/折叠）。无意图表格改写 = 失败。
-
-反例（一律拒）：打开文档后未键入却 dirty；被动 `afterRender` 把紧凑表改成带空格表并进 git；改一个单元格导致文件中所有表重排。验收只认 `office-view-markdown.markdownViewer`。
+反例（一律拒）：打开就脏、未动表却整表变漂亮进 diff、假脏闪一下。验收只认 `office-view-markdown.markdownViewer`。
 
 ### 功能验收
 
