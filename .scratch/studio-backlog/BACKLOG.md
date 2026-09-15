@@ -4,15 +4,22 @@
 
 - **Closed mainline:** ADR 0007–0013 (pain 1–5) on `main`.
 - **Residual hardening:** ADR 0014 closed at `09d57d6` + ui visual PASS (with harness residuals).
-- **Current mode (Studio lock 2026-09-15):** **Option 3 — soak `main` at `09d57d6`.** No new product tickets until real-user friction appears. Forge on standby.
+- **Current mode (Studio lock 2026-09-15):** **Option 3 soak ended** for intentional friction → **ADR 0015 「无意图写回保真」** product-locked at `.scratch/unintended-write-fidelity/` (architect `f591eea`). Forge sequence **01 → 02 → 03**.
 
-## Soak rules
+## Active wave
 
-- Collect friction from real use on `markdownViewer` only.
+| Wave | ADR | Path | Forge order |
+|------|-----|------|-------------|
+| 无意图写回保真 / unintended-write-fidelity | 0015 (`f591eea`) | `.scratch/unintended-write-fidelity/` | 01 no-intent write gate → 02 table format preserve → 03 span-preserving sync |
+
+## Soak / backlog rules
+
+- Collect further friction from real use on `markdownViewer` only.
 - Do not open Option 2 (Reading Surface density) without evidence.
 - Do not reopen 0007–0014 as greenfield; extend only with proof.
+- This wave ends soak-only stance **for this friction only**; unrelated A/B-list harness residuals stay non-blocking.
 
-## Backlog residuals (harness — do not block soak)
+## Backlog residuals (harness — do not block 0015)
 
 | Item | From | Notes |
 |------|------|--------|
@@ -25,6 +32,6 @@
 | Task/link GUI smoke under-proven | 0009 | unit wired |
 | `_scratch` root scatter (`download-vscode-test.js`, `hello-restore.sh`) | env | owner dirs |
 
-## Next wave trigger
+## Next after 0015
 
-Open ADR 0015+ only when Studio has a concrete friction report (who / what / repro on `markdownViewer`). Default owner: @product triage → @architect ADR → @ui criteria → @forge impl.
+Return to soak on `markdownViewer` unless Studio has another concrete friction report (who / what / repro). Default owner: @product triage → @architect ADR → @ui criteria → @forge impl.
