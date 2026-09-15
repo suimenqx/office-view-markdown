@@ -4,14 +4,21 @@
 
 **Blocked by:** Forge sequence after 01 → 02; uses no-intent gate + table preserve evidence. Prefer extend existing afterRender / updateTextDocument / ADR 0009 commit paths.
 
-**Status:** ready-for-agent
+**Status:** done
 
 **ui 观感：** 局部编辑局部脏；改一格 ≠ 满屏表 diff。
 
-- [ ] Edit one cell → other untouched tables keep original bytes in host/git diff
-- [ ] Untouched non-table spans likewise stable across intentional local edit
-- [ ] Only authored intent appears in diff fixtures (product invariants 2–3)
-- [ ] No second document model / preview / greenfield 0007–0014
-- [ ] git/diff fixtures + Light smoke on markdownViewer; build green
+- [x] Edit one cell → other untouched tables keep original bytes in host/git diff
+- [x] Untouched non-table spans likewise stable across intentional local edit
+- [x] Only authored intent appears in diff fixtures (product invariants 2–3)
+- [x] No second document model / preview / greenfield 0007–0014
+- [x] git/diff fixtures + Light smoke on markdownViewer; build green
 
 ## Comments
+
+- 2026-09-15 (UTC): Added line-preserving source spans and an LCS merge for
+  unchanged blocks/tables. An edited table is allowed to serialize its own
+  intentional span while unrelated authored bytes are spliced back into the
+  candidate document.
+- Verification: `spanPreservingSync.test.js` with a one-cell edit and a
+  second table/prose fixture; complete unit suite and build pass.

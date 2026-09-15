@@ -27,6 +27,13 @@ function loadModule(entryPoint, name) {
 
 function main() {
   const fidelity = loadModule('vditor/src/ts/util/writeBackFidelity.ts', 'write-back-fidelity');
+  require(path.join(root, 'vditor/src/js/lute/lute.min.js'));
+  const lute = global.Lute.New();
+  const compactTable = '|a|b|\n|---|---|';
+  const luteRoundTrip = lute.VditorDOM2Md(lute.Md2VditorDOM(compactTable));
+  assert.notStrictEqual(luteRoundTrip, compactTable);
+  assert.strictEqual(fidelity.preserveAuthoredSpans(compactTable, luteRoundTrip), compactTable);
+
   const original = [
     '# title',
     '',

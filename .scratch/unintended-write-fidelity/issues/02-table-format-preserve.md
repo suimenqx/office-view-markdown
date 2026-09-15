@@ -4,14 +4,21 @@
 
 **Blocked by:** Forge sequence after 01 (gate first); coordinate with 03 for span-level preserve. Prefer land on Lute/getMarkdown / table serialize seams.
 
-**Status:** ready-for-agent
+**Status:** done
 
 **ui 观感：** 未动表不进 diff；无意图写回不「变漂亮」。
 
-- [ ] Untouched compact tables (`|a|b|`) survive Md↔DOM↔Md without padding/normalize churn
-- [ ] Alignment rows / trailing newlines for untouched tables stay authored-stable
-- [ ] Edited tables may change intentionally; no-intent path never pretty-rewrites them
-- [ ] No ADR 0007 greenfield reopen / spreadsheet UI
-- [ ] Unit + git/diff fixtures; Light smoke on markdownViewer; build green
+- [x] Untouched compact tables (`|a|b|`) survive Md↔DOM↔Md without padding/normalize churn
+- [x] Alignment rows / trailing newlines for untouched tables stay authored-stable
+- [x] Edited tables may change intentionally; no-intent path never pretty-rewrites them
+- [x] No ADR 0007 greenfield reopen / spreadsheet UI
+- [x] Unit + git/diff fixtures; Light smoke on markdownViewer; build green
 
 ## Comments
+
+- 2026-09-15 (UTC): `getMarkdown()` now restores the authored source when
+  Lute's semantic spans are unchanged, including compact table padding,
+  alignment markers, and trailing line endings. This is source fidelity, not
+  an auto-pretty-format feature.
+- Verification: Lute compact-table round-trip fixture plus
+  `writeBackFidelity.test.js`; `npm run build`.
