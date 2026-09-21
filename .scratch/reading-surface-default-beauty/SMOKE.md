@@ -34,8 +34,7 @@ Markdown preview/editor.
   appearance patch leaves `isDocumentDirty` false (ADR 0015 intact).
 - `npm run build` green; full `node test/unit/*.test.js` suite green.
 
-Commits: `8350e29` (01 toolbar), `69e68e8` (02 type/measure), + 03 Auto/no-dirty
-(this wave).
+Commits: `8350e29` (01 toolbar), `69e68e8` (02 type/measure), +  (03 Auto/no-dirty).
 
 ## Residual risks
 

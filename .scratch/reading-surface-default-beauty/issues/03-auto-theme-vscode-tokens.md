@@ -17,4 +17,4 @@
 ## Comments
 
 - Product lock 2026-09-21 (SGT): Studio scheme + ADR 0016. Auto.css already maps many `--vscode-*` tokens; close residual gaps for table/outline/toolbar/blockquote and hard-gate appearance paths against false dirty.
-- Forge 2026-09-21 (SGT): implemented; commit `PENDING` (wave ADR 0016). Build + unit green.
+- Forge 2026-09-21 (SGT): implemented; commit `5ffb03f` (wave ADR 0016). Build + unit green.
