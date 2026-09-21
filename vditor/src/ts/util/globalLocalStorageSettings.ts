@@ -70,7 +70,7 @@ export const LAST_DARK_EDITOR_THEME_KEY = "lastDarkEditorTheme";
 
 export const LINE_HEIGHT_MIN = 1.0;
 export const LINE_HEIGHT_MAX = 3.0;
-export const LINE_HEIGHT_DEFAULT = 1.7;
+export const LINE_HEIGHT_DEFAULT = 1.75;
 
 export const FONT_FAMILY_OPTIONS = [
     { label: "Default", value: "inherit" },
@@ -132,6 +132,8 @@ export const applyBoldColorSetting = (vditorElement: HTMLElement, value: string 
 
 export const PAGE_WIDTH_KEY = "pageWidth";
 export const PAGE_WIDTH_DEFAULT = "100%";
+/** CSS --reading-surface-max-width product default (ADR 0016). */
+export const READING_SURFACE_MAX_WIDTH_DEFAULT = "min(100%, 52rem)";
 
 export const PAGE_WIDTH_OPTIONS = [
     { label: "100%", value: "100%" },

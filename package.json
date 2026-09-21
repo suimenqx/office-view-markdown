@@ -173,7 +173,7 @@
           },
           "office-view-markdown.editorFontSize": {
             "type": "number",
-            "default": 0,
+            "default": 16,
             "minimum": 0,
             "maximum": 28,
             "step": 2,

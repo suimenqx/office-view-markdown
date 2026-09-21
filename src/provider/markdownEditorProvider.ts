@@ -44,7 +44,7 @@ type MarkdownSyncConfigKey = typeof MARKDOWN_SYNC_CONFIG_KEYS[number] | 'editorF
 
 const getEffectiveEditorFontSize = (configuration: vscode.WorkspaceConfiguration): number =>
     resolveEditorFontSize(
-        configuration.get<number>('editorFontSize', 0),
+        configuration.get<number>('editorFontSize', 16),
         vscode.workspace.getConfiguration('editor').get<number>('fontSize', 14),
     );
 

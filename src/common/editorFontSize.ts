@@ -2,6 +2,8 @@ export const EDITOR_FONT_SIZE_MIN = 12;
 export const EDITOR_FONT_SIZE_MAX = 28;
 export const EDITOR_FONT_SIZE_STEP = 2;
 export const VSCODE_EDITOR_FONT_SIZE_FALLBACK = 14;
+/** Product default when office-view-markdown.editorFontSize is unset (0 still follows VS Code). */
+export const EDITOR_FONT_SIZE_PRODUCT_DEFAULT = 16;
 
 const isFiniteNumber = (value: unknown): value is number =>
     typeof value === 'number' && Number.isFinite(value);

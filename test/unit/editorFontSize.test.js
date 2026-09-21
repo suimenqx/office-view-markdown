@@ -32,7 +32,9 @@ function main() {
     EDITOR_FONT_SIZE_MIN,
     EDITOR_FONT_SIZE_STEP,
     resolveEditorFontSize,
+    EDITOR_FONT_SIZE_PRODUCT_DEFAULT,
   } = host;
+  assert.strictEqual(EDITOR_FONT_SIZE_PRODUCT_DEFAULT, 16);
 
   assert.deepStrictEqual(
     { min: EDITOR_FONT_SIZE_MIN, max: EDITOR_FONT_SIZE_MAX, step: EDITOR_FONT_SIZE_STEP },
@@ -52,7 +54,8 @@ function main() {
   const setting = settingEntry && settingEntry[1];
   assert.ok(setting, 'Editor Font Size setting should be contributed with a markdownDescription');
   assert.match(setting.markdownDescription, /^%config\.editorFontSize%$/);
-  assert.strictEqual(setting.default, 0, 'zero should mean follow VS Code editor font size');
+  assert.strictEqual(setting.default, 16, 'product default Editor Font Size is 16px');
+  assert.strictEqual(resolveEditorFontSize(0, 18), 18, 'configured 0 still follows VS Code');
   assert.strictEqual(setting.minimum, 0);
   assert.strictEqual(setting.maximum, 28);
   assert.strictEqual(setting.step, 2);
