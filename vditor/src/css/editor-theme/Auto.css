@@ -115,15 +115,14 @@ html[data-editor-theme="Auto"],
     --toolbar-border-color: var(--vscode-editorGroupHeader-tabsBorder, var(--border-color));
     --vditor-toolbar-border-bottom: 1px solid var(--toolbar-border-color);
 
-    --outline-fg-color: var(--vscode-sideBar-foreground, var(--front-color));
-    --outline-border-color: var(--vscode-sideBar-border, var(--border-color));
-    --outline-active-fg: var(--vscode-list-activeSelectionForeground, var(--front-color));
+    --vditor-outline-border: 1px solid var(--vscode-sideBar-border, var(--border-color));
+    --outline-active-color: var(--vscode-list-activeSelectionForeground, var(--front-color));
     --outline-active-bg: var(--vscode-list-activeSelectionBackground, color-mix(in srgb, var(--front-color) 8%, var(--outline-hover-bg)));
-
-    --table-hover-bg: var(--vscode-list-hoverBackground, color-mix(in srgb, var(--front-color) 4%, var(--table-body-bg)));
-    --table-header-fg: var(--vscode-sideBarSectionHeader-foreground, var(--front-color));
+    --outline-hover-bg: var(--vscode-list-hoverBackground, var(--outline-hover-bg));
 
     --blockquote-border: var(--vscode-textBlockQuote-border, var(--vscode-focusBorder, var(--border-color)));
+    --blockquote-bg: var(--vscode-textBlockQuote-background, var(--blockquote-bg, transparent));
+    --table-header-bg: var(--vscode-keybindingTable-headerBackground, var(--vscode-sideBarSectionHeader-background, var(--table-header-bg)));
 }
 
 body[data-vscode-theme-kind="vscode-high-contrast"] #vditor[data-editor-theme="Auto"],
@@ -133,7 +132,9 @@ body[data-vscode-theme-kind="vscode-high-contrast-light"] #vditor[data-editor-th
     --table-row-border: var(--vscode-contrastBorder, var(--table-row-border));
     --blockquote-border: var(--vscode-contrastBorder, var(--blockquote-border));
     --toolbar-border-color: var(--vscode-contrastBorder, var(--toolbar-border-color));
-    --outline-border-color: var(--vscode-contrastBorder, var(--outline-border-color));
+    --vditor-toolbar-border-bottom: 1px solid var(--toolbar-border-color);
+    --vditor-outline-border: 1px solid var(--vscode-contrastBorder, var(--border-color));
     --outline-active-bg: var(--vscode-list-activeSelectionBackground, var(--outline-active-bg));
     --outline-hover-bg: var(--vscode-list-hoverBackground, var(--outline-hover-bg));
+    --outline-active-color: var(--vscode-list-activeSelectionForeground, var(--front-color));
 }
