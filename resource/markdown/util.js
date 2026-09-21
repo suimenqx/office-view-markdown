@@ -1,57 +1,9 @@
 import { createMarkdownValueReader } from "./imagePath.js";
-
-const isMac = navigator.userAgent.includes('Mac OS');
-const shortcutTip = isMac ? '⌘ ^ E' : 'Ctrl Alt E';
+import { composePrimaryToolbar } from "./toolbarComposition.js";
 
 export async function getToolbar(onSave = null) {
     const codicon = (name) => `<span class="codicon codicon-${name}" aria-hidden="true"></span>`;
-    return [
-        'outline',
-        "headings",
-        "bold",
-        "italic",
-        "strike",
-        "link",
-        "|",
-        {
-            name: 'edit-in-vscode',
-            tip: `Edit In VSCode (${shortcutTip})`,
-            className: 'right',
-            icon: codicon('vscode'),
-            click() {
-                handler.emit("editInVSCode", true)
-            }
-        },
-        {
-            name: 'save',
-            tip: 'Save',
-            className: 'right',
-            icon: codicon('save'),
-            click() {
-                onSave?.()
-            }
-        },
-        'upload',
-        "|",
-        "editor-theme",
-        "editor-theme-toggle",
-        "|",
-        // "|",
-        "list",
-        "ordered-list",
-        "check",
-        "table",
-        "|",
-        "quote",
-        "code",
-        "inline-code",
-        "|",
-        "undo",
-        "redo",
-        "|",
-        "find",
-        "settings"
-    ]
+    return composePrimaryToolbar(onSave, codicon);
 }
 
 const hideContextMenu = (menu) => {
