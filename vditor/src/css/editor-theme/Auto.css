@@ -108,3 +108,32 @@ html[data-editor-theme="Auto"],
     --ir-bracket-color: var(--vscode-symbolIcon-operatorForeground, #569cd6);
     --ir-paren-color: var(--vscode-symbolIcon-numberForeground, #b5cea8);
 }
+
+/* ADR 0016 — residual chrome coherence (table / outline / toolbar / blockquote) */
+html[data-editor-theme="Auto"],
+#vditor[data-editor-theme="Auto"] {
+    --toolbar-border-color: var(--vscode-editorGroupHeader-tabsBorder, var(--border-color));
+    --vditor-toolbar-border-bottom: 1px solid var(--toolbar-border-color);
+
+    --outline-fg-color: var(--vscode-sideBar-foreground, var(--front-color));
+    --outline-border-color: var(--vscode-sideBar-border, var(--border-color));
+    --outline-active-fg: var(--vscode-list-activeSelectionForeground, var(--front-color));
+    --outline-active-bg: var(--vscode-list-activeSelectionBackground, color-mix(in srgb, var(--front-color) 8%, var(--outline-hover-bg)));
+
+    --table-hover-bg: var(--vscode-list-hoverBackground, color-mix(in srgb, var(--front-color) 4%, var(--table-body-bg)));
+    --table-header-fg: var(--vscode-sideBarSectionHeader-foreground, var(--front-color));
+
+    --blockquote-border: var(--vscode-textBlockQuote-border, var(--vscode-focusBorder, var(--border-color)));
+}
+
+body[data-vscode-theme-kind="vscode-high-contrast"] #vditor[data-editor-theme="Auto"],
+body[data-vscode-theme-kind="vscode-high-contrast-light"] #vditor[data-editor-theme="Auto"] {
+    --border-color: var(--vscode-contrastBorder, var(--border-color));
+    --table-border: var(--vscode-contrastBorder, var(--table-border));
+    --table-row-border: var(--vscode-contrastBorder, var(--table-row-border));
+    --blockquote-border: var(--vscode-contrastBorder, var(--blockquote-border));
+    --toolbar-border-color: var(--vscode-contrastBorder, var(--toolbar-border-color));
+    --outline-border-color: var(--vscode-contrastBorder, var(--outline-border-color));
+    --outline-active-bg: var(--vscode-list-activeSelectionBackground, var(--outline-active-bg));
+    --outline-hover-bg: var(--vscode-list-hoverBackground, var(--outline-hover-bg));
+}
